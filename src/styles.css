@@ -1,0 +1,19 @@
+.qlty-coverage-gutter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+}
+
+.qlty-coverage-hit {
+  background-color: rgba(40, 167, 69, 1);
+}
+
+.qlty-coverage-miss {
+  background-color: rgba(215, 58, 73, 1);
+}
+
+.diff-line-number {
+  position: relative;
+}

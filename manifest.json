@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub PR Diff Enhancer",
+  "version": "1.0",
+  "description": "Enhances GitHub PR diff pages with custom UI elements",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/pull/*", "https://github.com/*/commit/*"],
+      "css": ["dist/content.css"],
+      "js": ["dist/content.js"]
+    }
+  ],
+  "host_permissions": [
+    "http://localhost:3001/*"
+  ],
+  "background": {
+    "service_worker": "dist/service_worker.js"
+  },
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
