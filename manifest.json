@@ -1,15 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "GitHub PR Diff Enhancer",
+  "name": "Qlty",
   "version": "1.0",
-  "description": "Enhances GitHub PR diff pages with custom UI elements",
+  "description": "Universal code quality tool",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
+  "action": {
+    "default_title": "Qlty Settings",
+    "default_popup": "dist/settings.html"
+  },
   "content_scripts": [
     {
       "matches": ["https://github.com/*/pull/*", "https://github.com/*/commit/*"],
-      "css": ["dist/content.css"],
+      "css": ["dist/styles.css"],
       "js": ["dist/content.js"]
     }
   ],

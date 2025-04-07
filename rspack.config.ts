@@ -8,6 +8,10 @@ export default defineConfig({
 	entry: {
 		content: "./src/content.ts",
 		service_worker: "./src/service_worker.ts",
+		settings: "./src/settings.ts"
+	},
+	output: {
+		cssFilename: "styles.css",
 	},
 	resolve: {
 		extensions: ["...", ".ts"]
@@ -52,6 +56,11 @@ export default defineConfig({
 			}
 		]
 	},
+	plugins: [
+		new rspack.CopyRspackPlugin({
+			patterns: [{ from: './src/settings.html' }],
+		}),
+	],
 	optimization: {
 		minimizer: [
 			new rspack.SwcJsMinimizerRspackPlugin(),
