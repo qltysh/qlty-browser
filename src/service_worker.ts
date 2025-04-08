@@ -50,7 +50,8 @@ async function fetchCoverageData(
     }
 
     const result = await fetch(url, { headers });
-    sendResponse(await result.json());
+    const response = await result.json();
+    sendResponse(typeof response === "string" ? { error: response } : response);
   } catch (error) {
     console.error("[qlty] Error fetching coverage data:", error);
     sendResponse({ error: "Failed to fetch coverage data" });

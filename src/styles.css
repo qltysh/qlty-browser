@@ -14,6 +14,23 @@
   background-color: rgba(215, 58, 73, 1);
 }
 
+.qlty-coverage-omit {
+  background-color: rgb(215, 215, 215);
+}
+
 .diff-line-number {
   position: relative;
+}
+
+.qlty-coverage-error-missing::before {
+  background-color: rgb(236, 228, 228);
+  display: inline;
+  border-radius: 8px;
+  padding: 1px 3px;
+  font-size: x-small;
+  content: "Missing coverage";
+}
+
+.qlty-coverage-error-missing {
+  display: inline;
 }
