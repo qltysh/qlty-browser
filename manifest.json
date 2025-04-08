@@ -3,24 +3,23 @@
   "name": "Qlty",
   "version": "1.0",
   "description": "Universal code quality tool",
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
+  "permissions": ["activeTab", "storage"],
   "action": {
     "default_title": "Qlty Settings",
     "default_popup": "dist/settings.html"
   },
   "content_scripts": [
     {
-      "matches": ["https://github.com/*/pull/*", "https://github.com/*/commit/*"],
+      "matches": [
+        "https://qlty.sh/*",
+        "https://github.com/*/pull/*",
+        "https://github.com/*/commit/*"
+      ],
       "css": ["dist/styles.css"],
       "js": ["dist/content.js"]
     }
   ],
-  "host_permissions": [
-    "http://localhost:3001/*"
-  ],
+  "host_permissions": ["https://api.qlty.sh/*", "http://localhost:3001/*"],
   "background": {
     "service_worker": "dist/service_worker.js"
   },

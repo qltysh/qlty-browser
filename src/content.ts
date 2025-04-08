@@ -15,7 +15,7 @@ function tryInjectDiffPullRequestUI(): boolean {
   if (!rootElement) return false;
 
   const fileContainers = rootElement.querySelectorAll(
-    '[data-details-container-group="file"]'
+    '[data-details-container-group="file"]',
   );
   fileContainers.forEach(async (container) => {
     const path = container.getAttribute("data-tagsearch-path");
@@ -71,7 +71,7 @@ function tryInjectDiffCommitUI(): boolean {
     try {
       const data = await readCoverageData(path);
       const coverage = data?.files.find(
-        (file) => normalizePath(file.path) === normalizePath(path)
+        (file) => normalizePath(file.path) === normalizePath(path),
       );
       if (!data || !coverage) {
         console.info("[qlty] No coverage data found for file:", path);
@@ -79,13 +79,16 @@ function tryInjectDiffCommitUI(): boolean {
       }
 
       const gutterCells = rootElement.querySelectorAll(
-        `[data-diff-anchor="${fileId}"] tr.diff-line-row td:nth-last-child(2)`
+        `[data-diff-anchor="${fileId}"] tr.diff-line-row td:nth-last-child(2)`,
       );
       gutterCells.forEach((cell) => {
-        const idParts = cell.getAttribute("data-grid-cell-id")?.split("-") ?? [];
+        const idParts =
+          cell.getAttribute("data-grid-cell-id")?.split("-") ?? [];
         if (idParts.length === 0) return;
 
-        cell.querySelectorAll(".qlty-coverage-line").forEach((el) => el.remove());
+        cell
+          .querySelectorAll(".qlty-coverage-line")
+          .forEach((el) => el.remove());
 
         const lineNumber = parseInt(idParts.at(-2) ?? "") - 1;
         if (lineNumber >= 0) {
@@ -110,7 +113,7 @@ function tryInjectDiffCommitUI(): boolean {
 }
 
 async function readCoverageData(
-  path: string
+  path: string,
 ): Promise<CoverageReferenceResponse | null> {
   const pathParts = window.location.pathname.split("/");
   const [workspace, project] = pathParts.slice(1, 3);
@@ -140,7 +143,7 @@ async function readCoverageData(
         } else {
           resolve(response);
         }
-      }
+      },
     );
   });
 }

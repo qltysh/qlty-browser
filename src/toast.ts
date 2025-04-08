@@ -1,4 +1,7 @@
-export function showToast(message: string, type: "info" | "error" | "success" = "info"): void {
+export function showToast(
+  message: string,
+  type: "info" | "error" | "success" = "info",
+): void {
   const toast = document.createElement("div");
 
   Object.assign(toast.style, {
@@ -15,8 +18,8 @@ export function showToast(message: string, type: "info" | "error" | "success" = 
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    background: type === "error" ? "#f44336" :
-      type === "success" ? "#4caf50" : "#2196f3"
+    background:
+      type === "error" ? "#f44336" : type === "success" ? "#4caf50" : "#2196f3",
   });
 
   const textSpan = document.createElement("span");
@@ -31,7 +34,7 @@ export function showToast(message: string, type: "info" | "error" | "success" = 
     color: "white",
     fontSize: "18px",
     marginLeft: "10px",
-    cursor: "pointer"
+    cursor: "pointer",
   });
   closeButton.onclick = () => document.body.removeChild(toast);
 

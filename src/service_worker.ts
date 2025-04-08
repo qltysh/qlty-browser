@@ -3,7 +3,7 @@ let apiUrl = defaultApiUrl;
 let apiToken = "";
 
 // Load settings when service worker starts
-chrome.storage.sync.get(['apiUrl', 'apiToken'], function (result) {
+chrome.storage.sync.get(["apiUrl", "apiToken"], function (result) {
   apiUrl = result.apiUrl || defaultApiUrl;
   apiToken = result.apiToken;
   console.log("[qlty] Settings loaded, API URL:", apiUrl);
@@ -11,7 +11,7 @@ chrome.storage.sync.get(['apiUrl', 'apiToken'], function (result) {
 
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   console.log("[qlty] Settings changed:", changes);
-  if (namespace === 'sync') {
+  if (namespace === "sync") {
     if (changes.apiUrl) {
       apiUrl = changes.apiUrl.newValue || defaultApiUrl;
     }
@@ -24,7 +24,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 chrome.runtime.onMessage.addListener(function (
   data: MessageRequest,
   _,
-  sendResponse
+  sendResponse,
 ) {
   console.log("Received command:", data);
   if (data.command === "getFileCoverage") {
@@ -35,16 +35,18 @@ chrome.runtime.onMessage.addListener(function (
 
 async function fetchCoverageData(
   { workspace, project, reference, path }: FetchCoverageDataRequest,
-  sendResponse: (resp?: any) => void
+  sendResponse: (resp?: any) => void,
 ) {
-  const url = new URL(`${apiUrl || defaultApiUrl}/gh/${workspace}/projects/${project}/coverage/file`);
+  const url = new URL(
+    `${apiUrl || defaultApiUrl}/gh/${workspace}/projects/${project}/coverage/file`,
+  );
   url.searchParams.append("path", path);
   url.searchParams.append("reference", reference);
 
   try {
     const headers: HeadersInit = {};
     if (apiToken) {
-      headers['Authorization'] = `Bearer ${apiToken}`;
+      headers["Authorization"] = `Bearer ${apiToken}`;
     }
 
     const result = await fetch(url, { headers });

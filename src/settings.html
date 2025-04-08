@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
   <head>
     <title>Qlty Extension Settings</title>
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
         min-width: 400px;
         padding: 0 20px;
         color: #333;
@@ -82,17 +82,21 @@
     </style>
   </head>
 
-  <body>
+  <body class="qlty-settings">
     <h1>Qlty Settings</h1>
 
     <div class="form-group">
       <label for="apiToken">API Token:</label>
-      <input type="password" id="apiToken" placeholder="Enter your API token">
+      <input type="password" id="apiToken" placeholder="Enter your API token" />
     </div>
 
     <div class="form-group api-url-group">
       <label for="apiUrl">API URL:</label>
-      <input type="text" id="apiUrl" placeholder="API URL (e.g., https://api.qlty.sh)">
+      <input
+        type="text"
+        id="apiUrl"
+        placeholder="API URL (e.g., https://api.qlty.sh)"
+      />
     </div>
 
     <div class="buttons">
@@ -103,5 +107,4 @@
 
     <script src="settings.js"></script>
   </body>
-
 </html>
