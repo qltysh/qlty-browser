@@ -31,7 +31,7 @@ function tryInjectDiffPullRequestUI(): boolean {
       await injectIntoFileContainer(
         container.querySelector(".file-info") ?? container,
         container.getAttribute("data-tagsearch-path"),
-        container.querySelectorAll("td[data-line-number].blob-num-addition"),
+        container.querySelectorAll("td[data-line-number].js-blob-rnum"),
       );
     });
 
@@ -49,7 +49,7 @@ function tryInjectDiffCommitUI(): boolean {
     const fileId = link.getAttribute("href")?.split("#")[1] ?? "";
 
     await injectIntoFileContainer(
-      link.parentElement ?? link,
+      link.parentElement?.parentElement ?? link,
       path,
       rootElement.querySelectorAll(
         `[data-diff-anchor="${fileId}"] tr.diff-line-row td:nth-last-child(2)`,
@@ -72,10 +72,10 @@ async function injectIntoFileContainer(
   try {
     const coverage = await loadCoverageForPath(path);
     if (!coverage) {
-      const el = container.appendChild(document.createElement("div"));
-      el.classList.add("qlty-coverage-error-missing");
+      injectMissingCoverageElement(container);
       return;
     }
+    injectCoverageSummary(container, coverage);
     gutterCells.forEach((cell) => injectIntoGutterCell(cell, coverage));
   } catch (error: any) {
     showToast(`Error: ${error.message}`, "error");
@@ -107,6 +107,48 @@ function injectIntoGutterCell(cell: Element, coverage: FileCoverage): void {
   } else if (hit < 0) {
     el.classList.add("qlty-coverage-omit");
   }
+}
+
+function injectMissingCoverageElement(container: Element): void {
+  container
+    .querySelectorAll(".qlty-coverage-summary")
+    .forEach((el) => el.remove());
+
+  const el = container.appendChild(document.createElement("div"));
+  el.classList.add("qlty-coverage-summary");
+  const icon = el.appendChild(document.createElement("div"));
+  icon.classList.add("qlty-icon");
+  el.appendChild(document.createTextNode("Missing coverage"));
+}
+
+function injectCoverageSummary(
+  container: Element,
+  coverage: FileCoverage,
+): void {
+  container
+    .querySelectorAll(".qlty-coverage-summary")
+    .forEach((el) => el.remove());
+
+  const el = container.appendChild(document.createElement("div"));
+  el.classList.add("qlty-coverage-summary");
+  const icon = el.appendChild(document.createElement("div"));
+  icon.classList.add("qlty-icon");
+  el.appendChild(document.createTextNode("Coverage: "));
+  const percent = el.appendChild(document.createElement("span"));
+  const covPercent = (coverage.coveredLines / coverage.totalLines) * 100;
+  percent.innerText = `${covPercent.toFixed(2)}%`;
+  const progress = el.appendChild(document.createElement("div"));
+  progress.classList.add("qlty-coverage-progress");
+  const progressInner = progress.appendChild(document.createElement("div"));
+  progressInner.classList.add("qlty-coverage-progress-inner");
+  if (covPercent >= 90) {
+    progressInner.classList.add("qlty-coverage-progress-good");
+  } else if (covPercent >= 70) {
+    progressInner.classList.add("qlty-coverage-progress-warning");
+  } else {
+    progressInner.classList.add("qlty-coverage-progress-bad");
+  }
+  progressInner.style.width = `${covPercent}%`;
 }
 
 function normalizePath(path: string): string {

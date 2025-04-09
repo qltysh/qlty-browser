@@ -22,15 +22,58 @@
   position: relative;
 }
 
-.qlty-coverage-error-missing::before {
-  background-color: rgb(236, 228, 228);
+.qlty-coverage-summary {
+  pointer-events: none;
+  background-color: rgb(210, 214, 218);
+  margin-left: 4px;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: inline;
-  border-radius: 8px;
-  padding: 1px 3px;
-  font-size: x-small;
-  content: "Missing coverage";
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: smaller;
 }
 
-.qlty-coverage-error-missing {
-  display: inline;
+.qlty-coverage-summary .qlty-icon {
+  width: 12px;
+  height: 12px;
+  background-color: oklch(0.646 0.1112 190.91deg);
+  margin-right: 4px;
+  display: inline-block;
+  vertical-align: middle;
+  mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='80 80 308 308' fill='currentColor'%3E%3Crect class='cls-1' x='236.42' y='328.36' width='114.29' height='39.89'/%3E%3Cpolygon class='cls-1' points='236.42 129.69 308.53 209.49 236.42 289.28 263.92 319.4 363.24 209.49 263.8 99.45 236.42 129.69'/%3E%3Cpolygon class='cls-1' points='198.89 99.45 99.45 209.49 198.77 319.4 226.27 289.28 154.17 209.49 226.27 129.69 198.89 99.45'/%3E%3C/svg%3E%0A");
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  position: relative;
+  top: -1px;
+}
+
+.qlty-coverage-progress {
+  position: relative;
+  top: -1px;
+  border-radius: 4px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 24px;
+  height: 12px;
+  border: 1px solid rgb(180, 180, 180);
+  margin-left: 4px;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.qlty-coverage-progress-inner {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.qlty-coverage-progress-good {
+  background-color: rgba(40, 167, 69, 1);
+}
+.qlty-coverage-progress-bad {
+  background-color: rgba(215, 58, 73, 1);
+}
+.qlty-coverage-progress-warning {
+  background-color: rgba(255, 193, 7, 1);
 }

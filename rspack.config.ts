@@ -1,5 +1,6 @@
 import { defineConfig } from "@rspack/cli";
 import { rspack } from "@rspack/core";
+import { resolve } from "path";
 
 // Target browsers, see: https://github.com/browserslist/browserslist
 const targets = ["chrome >= 87", "edge >= 88", "firefox >= 78", "safari >= 14"];
@@ -15,6 +16,9 @@ export default defineConfig({
   },
   resolve: {
     extensions: ["...", ".ts"],
+    alias: {
+      "~": resolve(__dirname, "src"),
+    },
   },
   module: {
     rules: [
