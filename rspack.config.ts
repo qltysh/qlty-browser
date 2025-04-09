@@ -7,7 +7,8 @@ const targets = ["chrome >= 87", "edge >= 88", "firefox >= 78", "safari >= 14"];
 
 export default defineConfig({
   entry: {
-    content: "./src/content.ts",
+    auth: "./src/auth.ts",
+    coverage: "./src/coverage.ts",
     service_worker: "./src/service_worker.ts",
     settings: "./src/settings.ts",
   },

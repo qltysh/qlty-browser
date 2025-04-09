@@ -1,6 +1,6 @@
 export async function readCoverageData(
   path: string,
-): Promise<CoverageReferenceResponse | null> {
+): Promise<GetFileCoverageResponse | null> {
   const pathParts = window.location.pathname.split("/");
   const [workspace, project] = pathParts.slice(1, 3);
 
@@ -29,7 +29,7 @@ export async function readCoverageData(
         reference,
         path,
       },
-      (response: CoverageReferenceResponse | CoverageReferenceError) => {
+      (response: GetFileCoverageResponse | GetFileCoverageError) => {
         if ("error" in response) {
           reject(new Error(response.error));
         } else {

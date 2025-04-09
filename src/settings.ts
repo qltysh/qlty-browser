@@ -1,9 +1,14 @@
+import "./styles.css";
+
 // TypeScript conversion of settings.js
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   // Get references to DOM elements
   const apiTokenInput = document.getElementById("apiToken") as HTMLInputElement;
   const apiUrlInput = document.getElementById("apiUrl") as HTMLInputElement;
   const saveButton = document.getElementById("saveButton") as HTMLButtonElement;
+  const signinButton = document.getElementById(
+    "signinButton",
+  ) as HTMLButtonElement;
   const statusMessage = document.getElementById("statusMessage") as HTMLElement;
 
   // Load saved settings when the page opens
@@ -20,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
   );
 
   // Save settings when the save button is clicked
-  saveButton.addEventListener("click", function () {
+  saveButton.addEventListener("click", () => {
     const apiToken = apiTokenInput.value.trim();
     const apiUrl = apiUrlInput.value.trim();
 
@@ -30,10 +35,12 @@ document.addEventListener("DOMContentLoaded", function () {
         apiToken: apiToken,
         apiUrl: apiUrl,
       },
-      function () {
-        showStatus("Settings saved successfully!", "success");
-      },
+      () => showStatus("Settings saved successfully!", "success"),
     );
+  });
+
+  signinButton.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ command: "signIn" });
   });
 
   function showStatus(message: string, type: "success" | "error"): void {
@@ -42,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     statusMessage.style.display = "block";
 
     // Hide the message after 3 seconds
-    setTimeout(function () {
+    setTimeout(() => {
       statusMessage.style.display = "none";
     }, 3000);
   }

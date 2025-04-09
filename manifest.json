@@ -11,12 +11,18 @@
   "content_scripts": [
     {
       "matches": [
-        "https://qlty.sh/*",
         "https://github.com/*/pull/*",
         "https://github.com/*/commit/*"
       ],
       "css": ["dist/styles.css"],
-      "js": ["dist/content.js"]
+      "js": ["dist/coverage.js"]
+    },
+    {
+      "matches": [
+        "https://qlty.sh/auth/browser?*",
+        "http://localhost:3000/auth/browser?*"
+      ],
+      "js": ["dist/auth.js"]
     }
   ],
   "host_permissions": ["https://api.qlty.sh/*", "http://localhost:3001/*"],

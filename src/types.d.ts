@@ -1,4 +1,16 @@
-declare interface FetchCoverageDataRequest {
+declare interface GetAuthStateHashRequest {
+  command: "getAuthStateHash";
+}
+
+declare interface GetAuthStateHashResponse {
+  hash: string | null;
+}
+
+declare interface SignInRequest {
+  command: "signIn";
+}
+
+declare interface GetFileCoverageRequest {
   command: "getFileCoverage";
   workspace: string;
   project: string;
@@ -6,12 +18,12 @@ declare interface FetchCoverageDataRequest {
   path: string;
 }
 
-declare interface CoverageReferenceResponse {
+declare interface GetFileCoverageResponse {
   files: FileCoverage[];
   tags: string[];
 }
 
-declare interface CoverageReferenceError {
+declare interface GetFileCoverageError {
   error: string;
 }
 
@@ -24,13 +36,24 @@ declare interface FileCoverage {
   totalLines: number;
 }
 
-declare type MessageRequest = FetchCoverageDataRequest;
+
+declare type MessageRequest = GetFileCoverageRequest | GetAuthStateHashRequest | SignInRequest;
 
 declare namespace chrome {
   namespace runtime {
     function sendMessage(
-      message: FetchCoverageDataRequest,
-      callback: (response: CoverageReferenceResponse | CoverageReferenceError) => void
+      message: GetFileCoverageRequest,
+      callback: (response: GetFileCoverageResponse | GetFileCoverageError) => void
+    ): void;
+
+    function sendMessage(
+      message: GetAuthStateHashRequest,
+      callback: (response: GetAuthStateHashResponse) => void
+    ): void;
+
+    function sendMessage(
+      message: SignInRequest,
+      callback: () => void
     ): void;
   }
 }
