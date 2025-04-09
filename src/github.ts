@@ -141,9 +141,9 @@ function injectCoverageSummary(
   progress.classList.add("qlty-coverage-progress");
   const progressInner = progress.appendChild(document.createElement("div"));
   progressInner.classList.add("qlty-coverage-progress-inner");
-  if (covPercent >= 90) {
+  if (covPercent >= 75) {
     progressInner.classList.add("qlty-coverage-progress-good");
-  } else if (covPercent >= 70) {
+  } else if (covPercent >= 50) {
     progressInner.classList.add("qlty-coverage-progress-warning");
   } else {
     progressInner.classList.add("qlty-coverage-progress-bad");
