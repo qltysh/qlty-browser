@@ -1,23 +1,25 @@
-# Rspack project
+# Qlty Browser Extension
 
-## Setup
+Provides a browser extension for the [Qlty](https://qlty.sh) platform.
 
-Install the dependencies:
+## Development
 
-```bash
-npm install
+### Installing
+
+```sh
+npm install && npm run build
 ```
 
-## Get started
+You can also run `npm run watch` for continuous development.
 
-Start the dev server:
+To load the extension in Chrome:
 
-```bash
-npm run dev
-```
+1. Go to `chrome://extensions`
+2. Enable "Developer mode"
+3. Click "Load unpacked"
+4. Select the root directory of this project
 
-Build the app for production:
+You can follow instructions in the
+[Chrome Extension Developer Documentation][chrome-ext-load] for more details.
 
-```bash
-npm run build
-```
+[chrome-ext-load]: https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked
