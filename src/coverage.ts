@@ -1,5 +1,5 @@
+import "./coverage.css";
 import { tryInjectDiffUI } from "./github";
-import "./styles.css";
 
 function observeForTargetElement() {
   if (tryInjectDiffUI()) return;

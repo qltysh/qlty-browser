@@ -1,8 +1,12 @@
-const loginUrl = `http://localhost:3000/login`;
-let defaultApiUrl = "https://api.qlty.sh";
-let apiUrl = defaultApiUrl;
+const loginUrl = import.meta.env.VITE_LOGIN_URL ?? "https://api.qlty.sh/login";
+const apiUrl = import.meta.env.VITE_API_URL ?? "https://api.qlty.sh";
+
 let apiToken = "";
+let customApiToken = "";
 let authStateHash: string | null = null;
+
+let authTab: chrome.tabs.Tab | undefined;
+let prevTab: chrome.tabs.Tab | undefined;
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === "install") {
@@ -11,27 +15,30 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   }
 });
 
-// Load settings when service worker starts
-chrome.storage.sync.get(["apiUrl", "apiToken"], (result) => {
-  apiUrl = result.apiUrl || defaultApiUrl;
+chrome.storage.sync.get(["apiToken", "customApiToken"], (result) => {
   apiToken = result.apiToken;
-  console.log("[qlty] Settings loaded, API URL:", apiUrl);
+  customApiToken = result.customApiToken;
+  fetchUser();
 });
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   console.log("[qlty] Settings changed:", namespace, changes);
   if (namespace === "sync") {
-    if (changes.apiUrl) {
-      apiUrl = changes.apiUrl.newValue || defaultApiUrl;
-    }
     if (changes.apiToken) {
       apiToken = changes.apiToken.newValue;
+    }
+    if (changes.customApiToken) {
+      customApiToken = changes.customApiToken.newValue;
+    }
+
+    if (changes.apiToken || changes.customApiToken) {
+      fetchUser();
     }
   }
 });
 
 chrome.runtime.onMessage.addListener(
-  async (data: MessageRequest, _, sendResponse) => {
+  (data: MessageRequest, sender, sendResponse) => {
     if (typeof data === "string") {
       data = { command: data };
     }
@@ -40,51 +47,105 @@ chrome.runtime.onMessage.addListener(
       fetchCoverageData(data, sendResponse);
     } else if (data.command === "getAuthStateHash") {
       const hash = authStateHash;
-      //authStateHash = null; // Clear the hash because we are sending it
+      authStateHash = null; // Clear the hash because we are sending it
       sendResponse({ hash });
     } else if (data.command === "signIn") {
-      loadAuthenticationPage();
+      loadAuthenticationPage(sender.tab);
+      sendResponse({ success: true });
+    } else if (data.command === "signOut") {
+      chrome.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
+      sendResponse({ success: true });
+    } else if (data.command === "getUser") {
+      fetchUser(sendResponse);
+    } else if (data.command === "endAuthFlow") {
+      closeAuthenticationPage();
       sendResponse({ success: true });
     }
-    return true;
   },
 );
 
+function resolveApiToken(): string {
+  return customApiToken || apiToken;
+}
+
+async function fetchUser(
+  sendResponse?: (resp?: GetUserResponse | null) => void,
+) {
+  if (!resolveApiToken()) {
+    console.log("[qlty] No API token provided, clearing session");
+    chrome.storage.sync.set({ login: null, avatarUrl: null });
+    sendResponse?.(null);
+    return;
+  }
+
+  const url = new URL(`${apiUrl}/user`);
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${resolveApiToken()}` },
+    });
+    if (response.status >= 400 && response.status < 500) {
+      chrome.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
+      throw new Error(`Failed to fetch user: ${response.statusText}`);
+    }
+    const json = await response.json();
+    chrome.storage.sync.set({
+      login: json.login,
+      avatarUrl: json.avatarUrl,
+    });
+    sendResponse?.(typeof json === "string" ? { error: json } : json);
+  } catch (error) {
+    console.error("[qlty] Error fetching user:", error);
+    sendResponse?.(null);
+  }
+}
+
 async function fetchCoverageData(
   { workspace, project, reference, path }: GetFileCoverageRequest,
-  sendResponse: (resp?: any) => void,
+  sendResponse: (resp?: GetFileCoverageResponse | GetFileCoverageError) => void,
 ) {
+  if (!resolveApiToken()) {
+    sendResponse({ error: "No API token provided" });
+    return;
+  }
+
   const url = new URL(
-    `${apiUrl || defaultApiUrl}/gh/${workspace}/projects/${project}/coverage/file`,
+    `${apiUrl}/gh/${workspace}/projects/${project}/coverage/file`,
   );
   url.searchParams.append("path", path);
   url.searchParams.append("reference", reference);
 
   try {
-    const headers: HeadersInit = {};
-    if (apiToken) {
-      headers["Authorization"] = `Bearer ${apiToken}`;
-    }
-
-    const result = await fetch(url, { headers });
-    const response = await result.json();
-    sendResponse(typeof response === "string" ? { error: response } : response);
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${resolveApiToken()}` },
+    });
+    const json = await response.json();
+    sendResponse(typeof json === "string" ? { error: json } : json);
   } catch (error) {
     console.error("[qlty] Error fetching coverage data:", error);
     sendResponse({ error: "Failed to fetch coverage data" });
   }
 }
 
-async function loadAuthenticationPage() {
+async function loadAuthenticationPage(senderTab?: chrome.tabs.Tab) {
   const state = `browser-${crypto.randomUUID()}`;
   authStateHash = await hashStringHex(state.replace(/^browser-/, ""));
-  console.log("[qlty] State hash stored:", state);
-  console.log("[qlty] Auth state hash:", authStateHash);
+  prevTab = senderTab;
 
   const url = new URL(loginUrl);
   url.searchParams.set("response_type", "token");
   url.searchParams.set("state", state);
-  chrome.tabs.create({ url: url.toString() });
+  authTab = await chrome.tabs.create({ url: url.toString(), active: false });
+}
+
+async function closeAuthenticationPage() {
+  if (prevTab) {
+    await chrome.tabs.update(prevTab.id!, { active: true });
+    prevTab = undefined;
+  }
+  if (authTab) {
+    await chrome.tabs.remove(authTab.id!);
+    authTab = undefined;
+  }
 }
 
 async function hashStringHex(value: string): Promise<string> {

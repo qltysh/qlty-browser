@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["DOM", "ES2020"],
+    "lib": ["DOM", "ES2020", "WebWorker"],
     "module": "ESNext",
     "noEmit": true,
     "strict": true,
@@ -14,7 +14,8 @@
     "paths": {
       "~/*": ["./src/*"]
     },
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "jsx": "react"
   },
   "ts-node": {
     "compilerOptions": {

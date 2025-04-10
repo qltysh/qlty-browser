@@ -1,3 +1,10 @@
+declare interface StoredSettings {
+  apiToken: string;
+  customApiToken: string;
+  login: string;
+  avatarUrl: string;
+}
+
 declare interface GetAuthStateHashRequest {
   command: "getAuthStateHash";
 }
@@ -8,6 +15,10 @@ declare interface GetAuthStateHashResponse {
 
 declare interface SignInRequest {
   command: "signIn";
+}
+
+declare interface SignOutRequest {
+  command: "signOut";
 }
 
 declare interface GetFileCoverageRequest {
@@ -36,8 +47,25 @@ declare interface FileCoverage {
   totalLines: number;
 }
 
+declare interface GetUserRequest {
+  command: "getUser";
+}
 
-declare type MessageRequest = GetFileCoverageRequest | GetAuthStateHashRequest | SignInRequest;
+declare interface GetUserResponse {
+  id: string;
+  name: string;
+  email: string;
+  login: string;
+  avatarUrl: string;
+}
+
+declare interface EndAuthFlowRequest {
+  command: "endAuthFlow";
+}
+
+declare type MessageRequest = GetFileCoverageRequest
+  | GetAuthStateHashRequest | SignInRequest | SignOutRequest
+  | GetUserRequest | EndAuthFlowRequest;
 
 declare namespace chrome {
   namespace runtime {
@@ -53,6 +81,16 @@ declare namespace chrome {
 
     function sendMessage(
       message: SignInRequest,
+      callback: () => void
+    ): void;
+
+    function sendMessage(
+      message: GetUserRequest,
+      callback: (response: GetUserResponse | null) => void
+    ): void;
+
+    function sendMessage(
+      message: EndAuthFlowRequest,
       callback: () => void
     ): void;
   }

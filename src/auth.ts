@@ -13,7 +13,9 @@ async function authorize() {
 
     const { newToken } = await response.json();
     if (newToken) {
-      chrome.storage.sync.set({ apiToken: newToken }, () => window.close());
+      chrome.storage.sync.set({ apiToken: newToken }, () =>
+        chrome.runtime.sendMessage({ command: "endAuthFlow" }),
+      );
     } else {
       throw new Error("No token in payload");
     }

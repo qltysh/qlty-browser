@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "storage"],
   "action": {
     "default_title": "Qlty Settings",
-    "default_popup": "dist/settings.html"
+    "default_popup": "dist/src/settings.html"
   },
   "content_scripts": [
     {
@@ -14,7 +14,7 @@
         "https://github.com/*/pull/*",
         "https://github.com/*/commit/*"
       ],
-      "css": ["dist/styles.css"],
+      "css": ["dist/coverage.css"],
       "js": ["dist/coverage.js"]
     },
     {
