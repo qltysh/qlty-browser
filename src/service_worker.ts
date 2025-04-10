@@ -61,6 +61,8 @@ chrome.runtime.onMessage.addListener(
       closeAuthenticationPage();
       sendResponse({ success: true });
     }
+
+    return true;
   },
 );
 

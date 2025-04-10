@@ -69,6 +69,10 @@ async function injectIntoFileContainer(
 ) {
   if (!path) return;
 
+  if (gutterCells.length === 0) {
+    return;
+  }
+
   try {
     const coverage = await loadCoverageForPath(path);
     if (!coverage) {

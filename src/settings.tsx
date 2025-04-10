@@ -39,10 +39,8 @@ function Settings() {
         <div className="qlty-icon" style={{ width: 48, height: 48 }}></div>lty
         Settings
       </h1>
-
       <UserInfo cache={userCache} />
-
-      <AdvancedSettings initialState={userCache.customApiToken} />
+      <AdvancedSettings initialState={Boolean(userCache.customApiToken)} />
     </>
   );
 }

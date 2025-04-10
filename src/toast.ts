@@ -2,7 +2,12 @@ export function showToast(
   message: string,
   type: "info" | "error" | "success" = "info",
 ): void {
+  // Remove existing toasts
+  const existingToasts = document.querySelectorAll(".qlty-toast");
+  existingToasts.forEach((toast) => toast.remove());
+
   const toast = document.createElement("div");
+  toast.classList.add("qlty-toast");
 
   Object.assign(toast.style, {
     position: "fixed",

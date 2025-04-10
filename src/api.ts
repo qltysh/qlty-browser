@@ -30,7 +30,7 @@ export async function readCoverageData(
         path,
       },
       (response: GetFileCoverageResponse | GetFileCoverageError) => {
-        if ("error" in response) {
+        if (response && "error" in response) {
           reject(new Error(response.error));
         } else {
           resolve(response);
