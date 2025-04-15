@@ -22,6 +22,32 @@
   position: relative;
 }
 
+.qlty-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  max-width: 600px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  z-index: 10000;
+  gap: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: oklch(0.646 0.1112 190.91deg);
+}
+
+.qlty-toast.qlty-toast-error {
+  background-color: #f44336;
+}
+
+.qlty-toast.qlty-toast-success {
+  background-color: #4caf50;
+}
+
 .qlty-coverage-summary {
   pointer-events: none;
   background-color: rgb(210, 214, 218);
@@ -34,7 +60,7 @@
   font-size: smaller;
 }
 
-.qlty-coverage-summary .qlty-icon {
+.qlty-icon {
   width: 12px;
   height: 12px;
   background-color: oklch(0.646 0.1112 190.91deg);
@@ -47,6 +73,14 @@
   mask-repeat: no-repeat;
   position: relative;
   top: -1px;
+}
+
+.qlty-toast .qlty-icon {
+  display: inline-block;
+  background-color: #fff;
+  top: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .qlty-coverage-progress {

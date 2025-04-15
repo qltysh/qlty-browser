@@ -7,25 +7,18 @@ export function showToast(
   existingToasts.forEach((toast) => toast.remove());
 
   const toast = document.createElement("div");
-  toast.classList.add("qlty-toast");
+  toast.classList.add(
+    "qlty-toast",
+    type === "error"
+      ? "qlty-toast-error"
+      : type === "success"
+        ? "qlty-toast-success"
+        : "qlty-toast-info",
+  );
 
-  Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "20px",
-    right: "20px",
-    padding: "10px 20px",
-    borderRadius: "4px",
-    color: "#fff",
-    fontSize: "14px",
-    maxWidth: "300px",
-    boxShadow: "0 3px 6px rgba(0,0,0,0.16)",
-    zIndex: "10000",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    background:
-      type === "error" ? "#f44336" : type === "success" ? "#4caf50" : "#2196f3",
-  });
+  const icon = document.createElement("div");
+  icon.classList.add("qlty-icon");
+  toast.appendChild(icon);
 
   const textSpan = document.createElement("span");
   textSpan.textContent = message;
@@ -46,9 +39,9 @@ export function showToast(
   toast.appendChild(closeButton);
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    if (document.body.contains(toast)) {
-      document.body.removeChild(toast);
-    }
-  }, 5000);
+  // setTimeout(() => {
+  //   if (document.body.contains(toast)) {
+  //     document.body.removeChild(toast);
+  //   }
+  // }, 5000);
 }
