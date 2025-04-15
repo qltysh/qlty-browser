@@ -1,4 +1,4 @@
-const loginUrl = import.meta.env.VITE_LOGIN_URL ?? "https://api.qlty.sh/login";
+const loginUrl = `${import.meta.env.VITE_LOGIN_URL ?? "https://qlty.sh"}/login`;
 const apiUrl = import.meta.env.VITE_API_URL ?? "https://api.qlty.sh";
 
 let apiToken = "";
@@ -103,10 +103,13 @@ async function fetchUser(
 
 async function fetchCoverageData(
   { workspace, project, reference, path }: GetFileCoverageRequest,
-  sendResponse: (resp?: GetFileCoverageResponse | GetFileCoverageError) => void,
+  sendResponse: (
+    resp?: GetFileCoverageResponse | GetFileCoverageError | null,
+  ) => void,
 ) {
   if (!resolveApiToken()) {
-    sendResponse({ error: "No API token provided" });
+    console.log("[qlty] No API token provided");
+    sendResponse?.(null);
     return;
   }
 
@@ -136,7 +139,7 @@ async function loadAuthenticationPage(senderTab?: chrome.tabs.Tab) {
   const url = new URL(loginUrl);
   url.searchParams.set("response_type", "token");
   url.searchParams.set("state", state);
-  authTab = await chrome.tabs.create({ url: url.toString(), active: false });
+  authTab = await chrome.tabs.create({ url: url.toString(), active: true });
 }
 
 async function closeAuthenticationPage() {
