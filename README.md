@@ -14,10 +14,10 @@ You can also run `npm run watch` for continuous development.
 
 To load the extension in Chrome:
 
-1. Go to `chrome://extensions`
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select the root directory of this project
+1. Go to `chrome://extensions`.
+2. Enable "Developer mode".
+3. Click "Load unpacked".
+4. Select the built `dist/` directory in the repository.
 
 You can follow instructions in the
 [Chrome Extension Developer Documentation][chrome-ext-load] for more details.
