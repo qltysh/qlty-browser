@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.40.0",
-    "@types/chrome": "^0.0.315",
+    "@types/chrome": "^0.0.321",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.0",
