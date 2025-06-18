@@ -1,11 +1,10 @@
 import { readCoverageData } from "./api";
-import { showToast } from "./toast";
 
 export function tryInjectDiffUI(): boolean {
   try {
     return tryInjectDiffPullRequestUI() || tryInjectDiffCommitUI();
   } catch (error: any) {
-    showToast(`Error: ${error.message}`, "error");
+    console.warn(`[qlty] Could not load coverage: ${error.message}`);
     return false;
   }
 }
@@ -76,13 +75,12 @@ async function injectIntoFileContainer(
   try {
     const coverage = await loadCoverageForPath(path);
     if (!coverage) {
-      injectMissingCoverageElement(container);
       return;
     }
     injectCoverageSummary(container, coverage);
     gutterCells.forEach((cell) => injectIntoGutterCell(cell, coverage));
   } catch (error: any) {
-    showToast(`Error: ${error.message}`, "error");
+    console.warn(`[qlty] Could not load coverage: ${error.message}`);
   }
 }
 
@@ -111,18 +109,6 @@ function injectIntoGutterCell(cell: Element, coverage: FileCoverage): void {
   } else if (hit < 0) {
     el.classList.add("qlty-coverage-omit");
   }
-}
-
-function injectMissingCoverageElement(container: Element): void {
-  container
-    .querySelectorAll(".qlty-coverage-summary")
-    .forEach((el) => el.remove());
-
-  const el = container.appendChild(document.createElement("div"));
-  el.classList.add("qlty-coverage-summary");
-  const icon = el.appendChild(document.createElement("div"));
-  icon.classList.add("qlty-icon");
-  el.appendChild(document.createTextNode("Missing coverage"));
 }
 
 function injectCoverageSummary(
