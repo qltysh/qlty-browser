@@ -63,15 +63,21 @@ declare interface EndAuthFlowRequest {
   command: "endAuthFlow";
 }
 
-declare type MessageRequest = GetFileCoverageRequest
-  | GetAuthStateHashRequest | SignInRequest | SignOutRequest
-  | GetUserRequest | EndAuthFlowRequest;
+declare type MessageRequest =
+  | GetFileCoverageRequest
+  | GetAuthStateHashRequest
+  | SignInRequest
+  | SignOutRequest
+  | GetUserRequest
+  | EndAuthFlowRequest;
 
 declare namespace chrome {
   namespace runtime {
     function sendMessage(
       message: GetFileCoverageRequest,
-      callback: (response: GetFileCoverageResponse | GetFileCoverageError) => void
+      callback: (
+        response: GetFileCoverageResponse | GetFileCoverageError
+      ) => void
     ): void;
 
     function sendMessage(
@@ -79,10 +85,7 @@ declare namespace chrome {
       callback: (response: GetAuthStateHashResponse) => void
     ): void;
 
-    function sendMessage(
-      message: SignInRequest,
-      callback: () => void
-    ): void;
+    function sendMessage(message: SignInRequest, callback: () => void): void;
 
     function sendMessage(
       message: GetUserRequest,

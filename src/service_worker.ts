@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 const loginUrl = `${import.meta.env.VITE_LOGIN_URL ?? "https://qlty.sh"}/login`;
 const apiUrl = import.meta.env.VITE_API_URL ?? "https://api.qlty.sh";
 
@@ -5,30 +7,30 @@ let apiToken = "";
 let customApiToken = "";
 let authStateHash: string | null = null;
 
-let authTab: chrome.tabs.Tab | undefined;
-let prevTab: chrome.tabs.Tab | undefined;
+let authTab: browser.Tabs.Tab | undefined;
+let prevTab: browser.Tabs.Tab | undefined;
 
-chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+browser.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === "install") {
     console.log("[qlty] Extension installed");
     await loadAuthenticationPage();
   }
 });
 
-chrome.storage.sync.get(["apiToken", "customApiToken"], (result) => {
-  apiToken = result.apiToken;
-  customApiToken = result.customApiToken;
+browser.storage.sync.get(["apiToken", "customApiToken"]).then((result) => {
+  apiToken = (result.apiToken as string) || "";
+  customApiToken = (result.customApiToken as string) || "";
   fetchUser();
 });
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
+browser.storage.onChanged.addListener((changes, namespace) => {
   console.log("[qlty] Settings changed:", namespace, changes);
   if (namespace === "sync") {
     if (changes.apiToken) {
-      apiToken = changes.apiToken.newValue;
+      apiToken = changes.apiToken.newValue as string;
     }
     if (changes.customApiToken) {
-      customApiToken = changes.customApiToken.newValue;
+      customApiToken = changes.customApiToken.newValue as string;
     }
 
     if (changes.apiToken || changes.customApiToken) {
@@ -37,34 +39,35 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(
-  (data: MessageRequest, sender, sendResponse) => {
-    if (typeof data === "string") {
-      data = { command: data };
-    }
-    console.log("Received command:", data);
-    if (data.command === "getFileCoverage") {
-      fetchCoverageData(data, sendResponse);
-    } else if (data.command === "getAuthStateHash") {
-      const hash = authStateHash;
-      authStateHash = null; // Clear the hash because we are sending it
-      sendResponse({ hash });
-    } else if (data.command === "signIn") {
-      loadAuthenticationPage(sender.tab);
-      sendResponse({ success: true });
-    } else if (data.command === "signOut") {
-      chrome.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
-      sendResponse({ success: true });
-    } else if (data.command === "getUser") {
-      fetchUser(sendResponse);
-    } else if (data.command === "endAuthFlow") {
-      closeAuthenticationPage();
-      sendResponse({ success: true });
-    }
+browser.runtime.onMessage.addListener((input, sender, sendResponse) => {
+  let data: MessageRequest;
+  if (typeof input === "string") {
+    data = { command: input as MessageRequest["command"] } as MessageRequest;
+  } else {
+    data = input as MessageRequest;
+  }
+  console.log("Received command:", data);
+  if (data.command === "getFileCoverage") {
+    fetchCoverageData(data, sendResponse);
+  } else if (data.command === "getAuthStateHash") {
+    const hash = authStateHash;
+    authStateHash = null; // Clear the hash because we are sending it
+    sendResponse({ hash });
+  } else if (data.command === "signIn") {
+    loadAuthenticationPage(sender.tab);
+    sendResponse({ success: true });
+  } else if (data.command === "signOut") {
+    browser.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
+    sendResponse({ success: true });
+  } else if (data.command === "getUser") {
+    fetchUser(sendResponse);
+  } else if (data.command === "endAuthFlow") {
+    closeAuthenticationPage();
+    sendResponse({ success: true });
+  }
 
-    return true;
-  },
-);
+  return true;
+});
 
 function resolveApiToken(): string {
   return customApiToken || apiToken;
@@ -75,7 +78,7 @@ async function fetchUser(
 ) {
   if (!resolveApiToken()) {
     console.log("[qlty] No API token provided, clearing session");
-    chrome.storage.sync.set({ login: null, avatarUrl: null });
+    browser.storage.sync.set({ login: null, avatarUrl: null });
     sendResponse?.(null);
     return;
   }
@@ -86,11 +89,11 @@ async function fetchUser(
       headers: { Authorization: `Bearer ${resolveApiToken()}` },
     });
     if (response.status >= 400 && response.status < 500) {
-      chrome.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
+      browser.storage.sync.remove(["apiToken", "login", "avatarUrl"]);
       throw new Error(`Failed to fetch user: ${response.statusText}`);
     }
     const json = await response.json();
-    chrome.storage.sync.set({
+    browser.storage.sync.set({
       login: json.login,
       avatarUrl: json.avatarUrl,
     });
@@ -131,7 +134,7 @@ async function fetchCoverageData(
   }
 }
 
-async function loadAuthenticationPage(senderTab?: chrome.tabs.Tab) {
+async function loadAuthenticationPage(senderTab?: browser.Tabs.Tab) {
   const state = `browser-${crypto.randomUUID()}`;
   authStateHash = await hashStringHex(state.replace(/^browser-/, ""));
   prevTab = senderTab;
@@ -139,16 +142,16 @@ async function loadAuthenticationPage(senderTab?: chrome.tabs.Tab) {
   const url = new URL(loginUrl);
   url.searchParams.set("response_type", "token");
   url.searchParams.set("state", state);
-  authTab = await chrome.tabs.create({ url: url.toString(), active: true });
+  authTab = await browser.tabs.create({ url: url.toString(), active: true });
 }
 
 async function closeAuthenticationPage() {
-  if (prevTab) {
-    await chrome.tabs.update(prevTab.id!, { active: true });
+  if (prevTab?.id) {
+    await browser.tabs.update(prevTab.id, { active: true });
     prevTab = undefined;
   }
-  if (authTab) {
-    await chrome.tabs.remove(authTab.id!);
+  if (authTab?.id) {
+    await browser.tabs.remove(authTab.id);
     authTab = undefined;
   }
 }

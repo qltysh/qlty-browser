@@ -3,8 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "vite build",
-    "watch": "dotenvx run -f .env.development -- vite build --watch --mode development"
+    "build": "npm run build:chrome && npm run build:firefox",
+    "build:chrome": "cross-env TARGET_BROWSER=chrome vite build",
+    "build:firefox": "cross-env TARGET_BROWSER=firefox vite build",
+    "run:firefox": "web-ext run --source-dir=dist/firefox",
+    "sign:firefox": "web-ext sign --source-dir=dist/firefox --api-key=$WEB_EXT_API_KEY --api-secret=$WEB_EXT_API_SECRET --channel unlisted",
+    "package": "npm run build && npm run package:chrome && npm run package:firefox",
+    "package:chrome": "crx pack dist/chrome -o dist/qlty.crx",
+    "package:firefox": "web-ext build --source-dir=dist/firefox --artifacts-dir dist",
+    "watch": "dotenvx run -f .env.development -- vite build --watch --mode development",
+    "watch:chrome": "cross-env TARGET_BROWSER=chrome dotenvx run -f .env.development -- vite build --watch --mode development",
+    "watch:firefox": "cross-env TARGET_BROWSER=firefox dotenvx run -f .env.development -- vite build --watch --mode development"
   },
   "type": "module",
   "dependencies": {
@@ -12,14 +21,20 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.2",
     "@dotenvx/dotenvx": "^1.40.0",
     "@types/chrome": "^0.0.315",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/webextension-polyfill": "^0.12.3",
     "@vitejs/plugin-react": "^4.4.0",
+    "cross-env": "^7.0.3",
+    "crx": "^5.0.1",
     "fast-glob": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
-    "vite": "^6.2.6"
+    "vite": "^6.2.6",
+    "web-ext": "^8.7.1",
+    "webextension-polyfill": "^0.12.0"
   }
 }

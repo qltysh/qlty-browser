@@ -7,14 +7,14 @@ export function showToast(
   existingToasts.forEach((toast) => toast.remove());
 
   const toast = document.createElement("div");
-  toast.classList.add(
-    "qlty-toast",
-    type === "error"
-      ? "qlty-toast-error"
-      : type === "success"
-        ? "qlty-toast-success"
-        : "qlty-toast-info",
-  );
+  let toastTypeClass = "qlty-toast-info";
+  if (type === "error") {
+    toastTypeClass = "qlty-toast-error";
+  } else if (type === "success") {
+    toastTypeClass = "qlty-toast-success";
+  }
+
+  toast.classList.add("qlty-toast", toastTypeClass);
 
   const icon = document.createElement("div");
   icon.classList.add("qlty-icon");
@@ -38,10 +38,4 @@ export function showToast(
 
   toast.appendChild(closeButton);
   document.body.appendChild(toast);
-
-  // setTimeout(() => {
-  //   if (document.body.contains(toast)) {
-  //     document.body.removeChild(toast);
-  //   }
-  // }, 5000);
 }

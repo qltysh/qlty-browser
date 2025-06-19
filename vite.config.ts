@@ -1,24 +1,49 @@
+import { crx } from "@crxjs/vite-plugin";
 import react from "@vitejs/plugin-react";
-import { writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
+import { join } from "path";
 import { defineConfig } from "vite";
 
+// @ts-ignore
+import manifest from "./manifest";
+
+const firefoxManifestArtifact = join(
+  __dirname,
+  "dist",
+  "firefox",
+  "manifest.json",
+);
+
 export default ({ mode }: { mode: string }) => {
+  const targetBrowser = process.env.TARGET_BROWSER || "chrome";
+  if (targetBrowser === "firefox") {
+    delete manifest.background.service_worker;
+    manifest.background.page = "./src/service_worker.html";
+  }
+
   return defineConfig({
     plugins: [
       react(),
-      {
-        // Custom build step that processes the manifest.js file
-        // as a Chrome Extension Manifest V3 JSON file, interpolating
-        // any environment variables.
-        name: "watch-manifest",
+      crx({ manifest }),
+      targetBrowser === "firefox" && {
+        // Custom build step that processes the Firefox manifest.js file
+        // to remove unused keys
+        name: "update-firefox-manifest",
         async buildStart() {
           this.addWatchFile(`${__dirname}/manifest.js`);
         },
-        async writeBundle() {
-          const manifest = await import(`file://${__dirname}/manifest.js`);
+        async closeBundle() {
+          const manifest = JSON.parse(
+            await readFile(firefoxManifestArtifact, "utf-8"),
+          );
+          for (const resource of manifest.web_accessible_resources as {
+            use_dynamic_url?: boolean;
+          }[]) {
+            delete resource.use_dynamic_url;
+          }
           await writeFile(
-            "dist/manifest.json",
-            JSON.stringify(manifest.default, null, 2),
+            firefoxManifestArtifact,
+            JSON.stringify(manifest, null, 2),
           );
         },
       },
@@ -27,11 +52,15 @@ export default ({ mode }: { mode: string }) => {
     build: {
       sourcemap: mode === "development",
       emptyOutDir: true,
+      outDir: `dist/${targetBrowser}`,
       rollupOptions: {
         input: {
           auth: "./src/auth.ts",
           coverage: "./src/coverage.ts",
-          service_worker: "./src/service_worker.ts",
+          service_worker:
+            targetBrowser === "firefox"
+              ? "./src/service_worker.html"
+              : "./src/service_worker.ts",
           settings: "./src/settings.html",
         },
         output: {

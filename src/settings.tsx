@@ -6,18 +6,24 @@ import React, {
   useState,
 } from "react";
 import { createRoot } from "react-dom/client";
+import browser from "webextension-polyfill";
 
 import "./settings.css";
 
 async function getCachedUser(): Promise<StoredSettings> {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(
-      ["login", "avatarUrl", "apiToken", "customApiToken"],
-      ({ login, avatarUrl, apiToken, customApiToken }) => {
-        resolve({ login, avatarUrl, apiToken, customApiToken });
-      },
-    );
-  });
+  const { login, avatarUrl, apiToken, customApiToken } =
+    await browser.storage.sync.get([
+      "login",
+      "avatarUrl",
+      "apiToken",
+      "customApiToken",
+    ]);
+  return {
+    login: login as string,
+    avatarUrl: avatarUrl as string,
+    apiToken: apiToken as string,
+    customApiToken: customApiToken as string,
+  };
 }
 
 const initialCache = getCachedUser();
@@ -27,9 +33,9 @@ function Settings() {
 
   useEffect(() => {
     const handler = () => getCachedUser().then(setUserCache);
-    chrome.storage.sync.onChanged.addListener(handler);
+    browser.storage.onChanged.addListener(handler);
     return () => {
-      chrome.storage.sync.onChanged.removeListener(handler);
+      browser.storage.onChanged.removeListener(handler);
     };
   }, []);
 
@@ -51,7 +57,7 @@ function UserInfo({
   cache: StoredSettings;
 }) {
   const handleSignOut = useCallback(() => {
-    chrome.runtime.sendMessage({ command: "signOut" });
+    browser.runtime.sendMessage({ command: "signOut" });
   }, []);
 
   if (!login) {
@@ -94,9 +100,9 @@ function AdvancedSettings({ initialState = false }: { initialState: boolean }) {
   const [customApiToken, setCustomApiToken] = useState<string | null>(null);
 
   useEffect(() => {
-    chrome.storage.sync.get(["customApiToken"], (result) => {
+    browser.storage.sync.get(["customApiToken"]).then((result) => {
       if (result.customApiToken) {
-        setCustomApiToken(result.customApiToken);
+        setCustomApiToken(result.customApiToken as string);
       }
     });
 
@@ -105,9 +111,9 @@ function AdvancedSettings({ initialState = false }: { initialState: boolean }) {
         setCustomApiToken(changes.customApiToken.newValue);
       }
     };
-    chrome.storage.sync.onChanged.addListener(handler);
+    browser.storage.sync.onChanged.addListener(handler);
     return () => {
-      chrome.storage.sync.onChanged.removeListener(handler);
+      browser.storage.sync.onChanged.removeListener(handler);
     };
   }, [customApiToken]);
 
@@ -143,7 +149,7 @@ function AdvancedSettings({ initialState = false }: { initialState: boolean }) {
               type="password"
               placeholder="Manually enter API token"
               onChange={(e) => {
-                chrome.storage.sync.set({ customApiToken: e.target.value });
+                browser.storage.sync.set({ customApiToken: e.target.value });
               }}
               value={customApiToken ?? ""}
             />
@@ -173,7 +179,7 @@ function AdvancedSettings({ initialState = false }: { initialState: boolean }) {
 
 function NotSignedIn() {
   const handleSignIn = useCallback(() => {
-    chrome.runtime.sendMessage({ command: "signIn" });
+    browser.runtime.sendMessage({ command: "signIn" });
   }, []);
 
   return (
