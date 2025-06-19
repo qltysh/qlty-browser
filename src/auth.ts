@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 async function authorize() {
   try {
     await validateState();
@@ -13,9 +15,8 @@ async function authorize() {
 
     const { newToken } = await response.json();
     if (newToken) {
-      chrome.storage.sync.set({ apiToken: newToken }, () =>
-        chrome.runtime.sendMessage({ command: "endAuthFlow" }),
-      );
+      await browser.storage.sync.set({ apiToken: newToken });
+      await browser.runtime.sendMessage({ command: "endAuthFlow" });
     } else {
       throw new Error("No token in payload");
     }
@@ -45,11 +46,16 @@ async function validateState(): Promise<boolean> {
 }
 
 async function loadStoredStateHash(): Promise<string | null> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ command: "getAuthStateHash" }, (response) => {
-      resolve(response?.hash || null);
+  try {
+    const response = await browser.runtime.sendMessage({
+      command: "getAuthStateHash",
     });
-  });
+    const typedResponse = response as { hash: string | null };
+    return typedResponse?.hash ?? null;
+  } catch (error) {
+    console.error("[qlty] Error loading stored state hash:", error);
+    return null;
+  }
 }
 
 function showFailedAuthMessage() {

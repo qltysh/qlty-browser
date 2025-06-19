@@ -17,8 +17,9 @@ exclude_patterns = [
   "*_min.*",
   "*-min.*",
   "*.min.*",
-  "**/*.d.ts",
   "**/.yarn/**",
+  "**/*.d.ts",
+  "**/assets/**",
   "**/bower_components/**",
   "**/build/**",
   "**/cache/**",
@@ -36,9 +37,9 @@ exclude_patterns = [
   "**/protos/**",
   "**/seed/**",
   "**/target/**",
+  "**/templates/**",
   "**/testdata/**",
   "**/vendor/**",
-  "**/assets/**",
 ]
 
 test_patterns = [
@@ -59,16 +60,16 @@ mode = "comment"
 name = "default"
 default = true
 
+
 [[plugin]]
 name = "checkov"
 
 [[plugin]]
-name = "golangci-lint"
+name = "dotenv-linter"
 mode = "comment"
 
 [[plugin]]
 name = "markdownlint"
-version = "0.41.0"
 mode = "comment"
 
 [[plugin]]
@@ -76,6 +77,9 @@ name = "osv-scanner"
 
 [[plugin]]
 name = "prettier"
+
+[[plugin]]
+name = "radarlint-js"
 
 [[plugin]]
 name = "ripgrep"
@@ -90,3 +94,6 @@ drivers = [
 
 [[plugin]]
 name = "trufflehog"
+
+[[plugin]]
+name = "yamllint"

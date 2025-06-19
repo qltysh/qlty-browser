@@ -7,7 +7,6 @@ function observeForTargetElement() {
   const observer = new MutationObserver((_, obs) => {
     if (tryInjectDiffUI()) {
       obs.disconnect();
-      return;
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });

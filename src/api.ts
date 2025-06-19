@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 export async function readCoverageData(
   path: string,
 ): Promise<GetFileCoverageResponse | null> {
@@ -20,22 +22,27 @@ export async function readCoverageData(
     return null;
   }
 
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(
-      {
-        command: "getFileCoverage",
-        workspace,
-        project,
-        reference,
-        path,
-      },
-      (response: GetFileCoverageResponse | GetFileCoverageError | null) => {
-        if (response && "error" in response) {
-          reject(new Error(response.error));
-        } else {
-          resolve(response);
-        }
-      },
-    );
-  });
+  try {
+    const response = await browser.runtime.sendMessage({
+      command: "getFileCoverage",
+      workspace,
+      project,
+      reference,
+      path,
+    });
+
+    const typedResponse = response as
+      | GetFileCoverageResponse
+      | GetFileCoverageError
+      | null;
+
+    if (typedResponse && "error" in typedResponse) {
+      throw new Error(typedResponse.error);
+    }
+
+    return typedResponse;
+  } catch (error) {
+    console.error("[qlty] Error sending message:", error);
+    return null;
+  }
 }
