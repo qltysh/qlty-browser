@@ -1,11 +1,22 @@
 import { readCoverageData } from "./api";
 
-export function tryInjectDiffUI(): boolean {
+export function tryInjectDiffUI(): void {
   try {
-    return tryInjectDiffPullRequestUI() || tryInjectDiffCommitUI();
+    tryInjectDiffPullRequestUI();
+    tryInjectDiffCommitUI();
+
+    // Set up observer for future tab changes
+    const observer = new MutationObserver(() => {
+      tryInjectDiffPullRequestUI();
+      tryInjectDiffCommitUI();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   } catch (error: any) {
     console.warn(`[qlty] Could not load coverage: ${error.message}`);
-    return false;
   }
 }
 
@@ -20,9 +31,17 @@ async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   return coverage;
 }
 
-function tryInjectDiffPullRequestUI(): boolean {
-  const rootElement = document.querySelector(".js-diff-progressive-container");
-  if (!rootElement) return false;
+function tryInjectDiffPullRequestUI() {
+  document.querySelectorAll(".js-diff-progressive-container").forEach((el) => {
+    tryInjectDiffPullRequestUIElement(el as HTMLElement);
+  });
+}
+
+function tryInjectDiffPullRequestUIElement(
+  rootElement: HTMLElement | null,
+): void {
+  if (!rootElement) return;
+  if (rootElement.classList.contains("qlty-diff-ui")) return;
 
   rootElement
     .querySelectorAll('[data-details-container-group="file"]')
@@ -35,13 +54,13 @@ function tryInjectDiffPullRequestUI(): boolean {
     });
 
   console.log("[qlty] injected diff PR UI");
-
-  return true;
+  rootElement.classList.add("qlty-diff-ui");
 }
 
-function tryInjectDiffCommitUI(): boolean {
+function tryInjectDiffCommitUI(): void {
   const rootElement = document.getElementById("diff-content-parent");
-  if (!rootElement) return false;
+  if (!rootElement) return;
+  if (rootElement.classList.contains("qlty-diff-ui")) return;
 
   rootElement.querySelectorAll('a[href^="#diff-"').forEach(async (link) => {
     const path = (link as HTMLElement).innerText.replace("\u200E", "");
@@ -57,8 +76,7 @@ function tryInjectDiffCommitUI(): boolean {
   });
 
   console.log("[qlty] injected diff commit UI");
-
-  return true;
+  rootElement.classList.add("qlty-diff-ui");
 }
 
 async function injectIntoFileContainer(
