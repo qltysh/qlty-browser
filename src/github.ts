@@ -1,14 +1,25 @@
 import { readCoverageData } from "./api";
 
+const coverageData = new Map<string, FileCoverage>();
+
 export function tryInjectDiffUI(): void {
   try {
     tryInjectDiffPullRequestUI();
     tryInjectDiffCommitUI();
 
     // Set up observer for future tab changes
-    const observer = new MutationObserver(() => {
-      tryInjectDiffPullRequestUI();
-      tryInjectDiffCommitUI();
+    const observer = new MutationObserver((mutations) => {
+      let update = false;
+      mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" || mutation.addedNodes.length > 0) {
+          update = true;
+        }
+      });
+
+      if (update) {
+        tryInjectDiffPullRequestUI();
+        tryInjectDiffCommitUI();
+      }
     });
 
     observer.observe(document.body, {
@@ -21,13 +32,18 @@ export function tryInjectDiffUI(): void {
 }
 
 async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
+  path = normalizePath(path);
+  let cached = coverageData.get(path);
+  if (cached) return cached;
+
   const data = await readCoverageData(path);
   const coverage = data?.files.find(
-    (file) => normalizePath(file.path) === normalizePath(path),
+    (file) => normalizePath(file.path) === path,
   );
   if (!data || !coverage) {
     return null;
   }
+  coverageData.set(path, coverage);
   return coverage;
 }
 
@@ -62,7 +78,18 @@ function tryInjectDiffCommitUI(): void {
   if (!rootElement) return;
   if (rootElement.classList.contains("qlty-diff-ui")) return;
 
-  rootElement.querySelectorAll('a[href^="#diff-"').forEach(async (link) => {
+  const links: Element[] = [];
+  rootElement.querySelectorAll('a[href^="#diff-"').forEach((link) => {
+    if (link.classList.contains("qlty-diff-link")) return; // Skip if already injected
+    link.classList.add("qlty-diff-link");
+    links.push(link);
+  });
+
+  if (links.length === 0) {
+    return; // No links to process
+  }
+
+  links.forEach(async (link) => {
     const path = (link as HTMLElement).innerText.replace("\u200E", "");
     const fileId = link.getAttribute("href")?.split("#")[1] ?? "";
 
