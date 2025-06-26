@@ -75,6 +75,32 @@
   top: -1px;
 }
 
+.qlty-diff-badge {
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 6px;
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 6px;
+
+  .qlty-icon {
+    margin-right: 0;
+    width: 18px;
+    height: 18px;
+  }
+
+  &.qlty-diff-badge-pr {
+    order: 2;
+    padding: 4px;
+    .qlty-icon {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
 .qlty-toast .qlty-icon {
   display: inline-block;
   background-color: #fff;

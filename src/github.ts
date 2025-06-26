@@ -70,7 +70,14 @@ function tryInjectDiffPullRequestUIElement(
     });
 
   console.log("[qlty] injected diff PR UI");
+  addPRPageBadge();
   rootElement.classList.add("qlty-diff-ui");
+}
+
+function addPRPageBadge(): void {
+  const badge = createBadge("pr");
+  if (!badge) return;
+  document.querySelector(".gh-header-actions")?.prepend(badge);
 }
 
 function tryInjectDiffCommitUI(): void {
@@ -103,7 +110,25 @@ function tryInjectDiffCommitUI(): void {
   });
 
   console.log("[qlty] injected diff commit UI");
+  addDiffPageBadge();
   rootElement.classList.add("qlty-diff-ui");
+}
+
+function addDiffPageBadge(): void {
+  const badge = createBadge("commit");
+  if (!badge) return;
+  document.querySelector("[data-component=PH_Actions] div")?.prepend(badge);
+}
+
+function createBadge(type: "pr" | "commit"): HTMLDivElement | null {
+  if (document.querySelector(".qlty-diff-badge")) {
+    return null;
+  }
+  const badge = document.createElement("div");
+  badge.classList.add("qlty-diff-badge");
+  badge.classList.add(`qlty-diff-badge-${type}`);
+  badge.appendChild(document.createElement("div")).classList.add("qlty-icon");
+  return badge;
 }
 
 async function injectIntoFileContainer(
