@@ -2,25 +2,10 @@ import browser from "webextension-polyfill";
 
 export async function readCoverageData(
   path: string,
+  reference: string,
 ): Promise<GetFileCoverageResponse | null> {
   const pathParts = window.location.pathname.split("/");
   const [workspace, project] = pathParts.slice(1, 3);
-
-  let commitShaIndex = pathParts.indexOf("pull");
-  let reference: string | null = null;
-  if (commitShaIndex >= 0) {
-    reference = `refs/pull/${pathParts[commitShaIndex + 1]}`;
-  } else {
-    commitShaIndex = pathParts.indexOf("commit");
-    if (commitShaIndex >= 0) {
-      reference = pathParts[commitShaIndex + 1];
-    }
-  }
-
-  if (!reference) {
-    console.error("[qlty] No commit SHA found in the URL.");
-    return null;
-  }
 
   try {
     const response = await browser.runtime.sendMessage({
