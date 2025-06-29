@@ -1,30 +1,20 @@
 import { readCoverageData } from "./api";
+import { timeout } from "./utils";
+import { onCommitPageOpen, onReviewPageOpen } from "./github";
+import { createButton, createButtonContent } from "./github/components";
 
 const coverageData = new Map<string, FileCoverage>();
 
 export function tryInjectDiffUI(): void {
   try {
-    tryInjectDiffPullRequestUI();
-    tryInjectDiffCommitUI();
-
-    // Set up observer for future tab changes
-    const observer = new MutationObserver((mutations) => {
-      let update = false;
-      mutations.forEach((mutation) => {
-        if (mutation.type === "attributes" || mutation.addedNodes.length > 0) {
-          update = true;
-        }
-      });
-
-      if (update) {
-        tryInjectDiffPullRequestUI();
-        tryInjectDiffCommitUI();
-      }
+    onCommitPageOpen(async () => {
+      await timeout(50);
+      tryInjectDiffCommitUI();
     });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
+    onReviewPageOpen(async () => {
+      await timeout(50);
+      void tryInjectDiffPullRequestUI();
     });
   } catch (error: any) {
     console.warn(`[qlty] Could not load coverage: ${error.message}`);
@@ -47,31 +37,37 @@ async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   return coverage;
 }
 
-function tryInjectDiffPullRequestUI() {
-  document.querySelectorAll(".js-diff-progressive-container").forEach((el) => {
-    tryInjectDiffPullRequestUIElement(el as HTMLElement);
-  });
+async function tryInjectDiffPullRequestUI() {
+  const diffContainers = Array.from(
+    document.querySelectorAll(".js-diff-progressive-container")
+  );
+
+  const promises = diffContainers.map((el) =>
+    tryInjectDiffPullRequestUIElement(el as HTMLElement));
+  await Promise.all(promises);
 }
 
-function tryInjectDiffPullRequestUIElement(
+async function tryInjectDiffPullRequestUIElement(
   rootElement: HTMLElement | null,
-): void {
+): Promise<void> {
   if (!rootElement) return;
   if (rootElement.classList.contains("qlty-diff-ui")) return;
 
-  rootElement
-    .querySelectorAll('[data-details-container-group="file"]')
-    .forEach(async (container) => {
-      await injectIntoFileContainer(
+  let fileContainerGroups = Array.from(rootElement
+    .querySelectorAll('[data-details-container-group="file"]'));
+
+  const promises = fileContainerGroups
+    .map((container) => injectIntoFileContainer(
         container.querySelector(".file-info") ?? container,
         container.getAttribute("data-tagsearch-path"),
         container.querySelectorAll("td[data-line-number].js-blob-rnum"),
-      );
-    });
+      )
+    );
 
   console.log("[qlty] injected diff PR UI");
   addPRPageBadge();
   rootElement.classList.add("qlty-diff-ui");
+  await Promise.all(promises);
 }
 
 function addPRPageBadge(): void {
