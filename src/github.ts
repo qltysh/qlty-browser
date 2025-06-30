@@ -195,7 +195,7 @@ function injectCoverageSummary(
   icon.classList.add("qlty-icon");
   el.appendChild(document.createTextNode("Coverage: "));
   const percent = el.appendChild(document.createElement("span"));
-  const covPercent = (coverage.coveredLines / coverage.totalLines) * 100;
+  const covPercent = coverage.coveredLines / (coverage.coveredLines + coverage.missedLines) * 100;
   percent.innerText = `${covPercent.toFixed(2)}%`;
   const progress = el.appendChild(document.createElement("div"));
   progress.classList.add("qlty-coverage-progress");
