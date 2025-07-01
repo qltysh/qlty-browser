@@ -137,3 +137,7 @@
 .qlty-coverage-progress-warning {
   background-color: rgba(255, 193, 7, 1);
 }
+.Button-content .qlty-icon {
+  background-color: var(--fgColor-muted, #9198a1);
+  top: auto;
+}

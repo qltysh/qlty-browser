@@ -1,10 +1,11 @@
 import { readCoverageData } from "./api";
+import { createButton, createButtonContent } from "./github/components";
 
 const coverageData = new Map<string, FileCoverage>();
 
 export function tryInjectDiffUI(): void {
   try {
-    tryInjectDiffPullRequestUI();
+    void tryInjectDiffPullRequestUI();
     tryInjectDiffCommitUI();
 
     // Set up observer for future tab changes
@@ -17,7 +18,7 @@ export function tryInjectDiffUI(): void {
       });
 
       if (update) {
-        tryInjectDiffPullRequestUI();
+        void tryInjectDiffPullRequestUI();
         tryInjectDiffCommitUI();
       }
     });
@@ -47,10 +48,18 @@ async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   return coverage;
 }
 
-function tryInjectDiffPullRequestUI() {
-  document.querySelectorAll(".js-diff-progressive-container").forEach((el) => {
-    tryInjectDiffPullRequestUIElement(el as HTMLElement);
-  });
+async function tryInjectDiffPullRequestUI() {
+  const diffContainers = Array.from(
+    document.querySelectorAll(".js-diff-progressive-container")
+  );
+
+  const promises = diffContainers.map((el) =>
+    tryInjectDiffPullRequestUIElement(el as HTMLElement));
+  await Promise.all(promises);
+
+  const prReviewToolsDiv = document.querySelector('.pr-review-tools') as HTMLDivElement;
+  addNextUncoveredLineButton(prReviewToolsDiv);
+  setupJumpToUncoveredLineHotkey();
 }
 
 function tryInjectDiffPullRequestUIElement(
@@ -72,6 +81,39 @@ function tryInjectDiffPullRequestUIElement(
   console.log("[qlty] injected diff PR UI");
   addPRPageBadge();
   rootElement.classList.add("qlty-diff-ui");
+}
+
+const uncoveredLineKeyListener = (event: KeyboardEvent) => {
+  const ignoredTags = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+
+  const isTypingInEditable = (element: EventTarget | null) => {
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+
+    return (
+      element?.isContentEditable === true ||
+      ignoredTags.has(element?.tagName)
+    );
+  }
+
+  const {key, target, ctrlKey, metaKey, altKey, repeat} = event;
+  if (key !== 'n' || ctrlKey || metaKey || altKey || repeat) {
+    return;
+  }
+
+  if (isTypingInEditable(target)) {
+    // ignore when focus is in an input-like or contentEditable element
+    return;
+  }
+
+  event.preventDefault();
+  jumpToNextUncoveredLine();
+};
+
+function setupJumpToUncoveredLineHotkey() {
+  document.removeEventListener('keydown', uncoveredLineKeyListener);
+  document.addEventListener('keydown', uncoveredLineKeyListener);
 }
 
 function addPRPageBadge(): void {
@@ -129,6 +171,68 @@ function createBadge(type: "pr" | "commit"): HTMLDivElement | null {
   badge.classList.add(`qlty-diff-badge-${type}`);
   badge.appendChild(document.createElement("div")).classList.add("qlty-icon");
   return badge;
+}
+
+function getUncoveredLineDivs(): HTMLDivElement[] {
+  return Array.from(document.querySelectorAll('.qlty-coverage-miss'));
+}
+
+function jumpToNextUncoveredLine() {
+  const uncoveredLineDivs = getUncoveredLineDivs();
+  if (uncoveredLineDivs.length === 0) {
+    return;
+  }
+
+  const currentlySelectedIndex = uncoveredLineDivs.findIndex(
+    el => el.parentElement?.classList.contains('selected-line')
+  );
+
+  const nextIndex = (currentlySelectedIndex + 1) % uncoveredLineDivs.length;
+  const nextElement = uncoveredLineDivs[nextIndex];
+  nextElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+  const linkableLine = nextElement.parentElement!;
+  if (!linkableLine.classList.contains('js-linkable-line-number')) {
+    console.warn("[qlty] Could not find linkable line number");
+    return;
+  }
+
+  // Click the line to highlight it
+  // If we don't also trigger a click event, then our line gets unhighlighted on
+  // subsequent button clicks
+  linkableLine.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+  linkableLine.dispatchEvent(new MouseEvent('mouseup', {bubbles: true}));
+  linkableLine.dispatchEvent(new MouseEvent("click", {bubbles: true}));
+}
+
+function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
+  let existingButton = document.querySelector('.btn-next-uncovered-line');
+  if (existingButton) {
+    return;
+  }
+
+  if (getUncoveredLineDivs().length === 0) {
+    // No uncovered lines
+    return;
+  }
+
+  const buttonIcon = document.createElement('span');
+  buttonIcon.classList.add('qlty-icon');
+
+  const button = createButton(
+    'Jump to next uncovered line',
+    'diffbar-item mr-2 btn-next-uncovered-line',
+    (e) => {
+      e.preventDefault();
+      jumpToNextUncoveredLine();
+    },
+    createButtonContent([buttonIcon]),
+  );
+
+  // Place it after the final "secondary" button
+  const finalSecondaryButtonContainer =
+    Array.from(prReviewToolsDiv.querySelectorAll('.diffbar-item:has(.Button--secondary)')).pop();
+  finalSecondaryButtonContainer?.after(button);
 }
 
 async function injectIntoFileContainer(
