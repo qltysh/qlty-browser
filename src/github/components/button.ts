@@ -5,7 +5,7 @@ export function createButton(
   buttonContent?: HTMLSpanElement,
 ): HTMLButtonElement {
   const button = document.createElement('button');
-  button.classList.add('qlty-btn', 'qlty-mr-2', ...classNames);
+  button.classList.add('qlty-btn', ...classNames);
   button.addEventListener('click', onClick.bind(button));
 
   const textSpan = document.createElement('span');

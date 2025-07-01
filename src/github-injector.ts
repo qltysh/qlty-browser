@@ -1,5 +1,6 @@
 import { readCoverageData } from "./api";
 import { createButton, createButtonContent } from "./github/components";
+import { SELECTOR_PR_REVIEW_TOOLS } from "./github/components/selectors";
 
 const coverageData = new Map<string, FileCoverage>();
 
@@ -57,7 +58,7 @@ async function tryInjectDiffPullRequestUI() {
     tryInjectDiffPullRequestUIElement(el as HTMLElement));
   await Promise.all(promises);
 
-  const prReviewToolsDiv = document.querySelector('.pr-review-tools') as HTMLDivElement;
+  const prReviewToolsDiv = document.querySelector(SELECTOR_PR_REVIEW_TOOLS) as HTMLDivElement;
   addNextUncoveredLineButton(prReviewToolsDiv);
   setupJumpToUncoveredLineHotkey();
 }
@@ -221,7 +222,7 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
 
   const button = createButton(
     'Jump to next uncovered line',
-    ['qlty-btn-next-uncovered-line'],
+    ['qlty-btn-next-uncovered-line', 'qlty-ml-2'],
     (e) => {
       e.preventDefault();
       jumpToNextUncoveredLine();
@@ -229,10 +230,7 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
     createButtonContent([buttonIcon]),
   );
 
-  // Place it after the final "secondary" button
-  const finalSecondaryButtonContainer =
-    Array.from(prReviewToolsDiv.querySelectorAll('.diffbar-item:has(.Button--secondary)')).pop();
-  finalSecondaryButtonContainer?.after(button);
+  prReviewToolsDiv.appendChild(button);
 }
 
 async function injectIntoFileContainer(
