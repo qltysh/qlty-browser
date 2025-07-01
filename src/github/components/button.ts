@@ -1,15 +1,14 @@
 export function createButton(
   text: string,
-  className: string,
+  classNames: string[],
   onClick: (this: HTMLButtonElement, e: MouseEvent) => any,
   buttonContent?: HTMLSpanElement,
 ): HTMLButtonElement {
   const button = document.createElement('button');
-  button.className = `Button Button--small Button--secondary ${className}`;
+  button.classList.add('qlty-btn', 'qlty-mr-2', ...classNames);
   button.addEventListener('click', onClick.bind(button));
 
   const textSpan = document.createElement('span');
-  textSpan.classList.add('Button-label');
   textSpan.textContent = text;
 
   buttonContent = buttonContent ?? createButtonContent();
@@ -25,7 +24,6 @@ export function createButtonContent(
   contentElements?: HTMLElement[],
 ): HTMLSpanElement {
   const buttonContentElement = document.createElement('span');
-  buttonContentElement.classList.add('Button-content');
   contentElements?.forEach((element) => buttonContentElement.appendChild(element));
 
   return buttonContentElement;

@@ -206,7 +206,7 @@ function jumpToNextUncoveredLine() {
 }
 
 function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
-  let existingButton = document.querySelector('.btn-next-uncovered-line');
+  let existingButton = document.querySelector('.qlty-btn-next-uncovered-line');
   if (existingButton) {
     return;
   }
@@ -221,7 +221,7 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
 
   const button = createButton(
     'Jump to next uncovered line',
-    'diffbar-item mr-2 btn-next-uncovered-line',
+    ['qlty-btn-next-uncovered-line'],
     (e) => {
       e.preventDefault();
       jumpToNextUncoveredLine();

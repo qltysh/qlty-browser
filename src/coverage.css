@@ -109,6 +109,30 @@
   height: 16px;
 }
 
+.qlty-btn {
+  float: left;
+  vertical-align: middle;
+
+  background-color: #212830;
+  border: 0.0625rem solid #3d444d;
+  border-radius: 0.375rem;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 0 0.5rem;
+  height: 1.75rem;
+
+  .qlty-icon {
+    background-color: #9198a1;
+    top: auto;
+  }
+}
+
+.qlty-mr-2 {
+  margin-right: 8px;
+}
+
 .qlty-coverage-progress {
   position: relative;
   top: -1px;
@@ -136,8 +160,4 @@
 }
 .qlty-coverage-progress-warning {
   background-color: rgba(255, 193, 7, 1);
-}
-.Button-content .qlty-icon {
-  background-color: var(--fgColor-muted, #9198a1);
-  top: auto;
 }
