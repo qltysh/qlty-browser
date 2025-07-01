@@ -1,4 +1,4 @@
 import "./coverage.css";
-import { tryInjectDiffUI } from "./github";
+import { tryInjectDiffUI } from "./github-injector";
 
 tryInjectDiffUI();
