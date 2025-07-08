@@ -1,12 +1,11 @@
 import { readCoverageData } from "./api";
-import { createButton, createButtonContent } from "./github/components";
+import { createButton, createButtonContent } from "./github/components/button";
 import { SELECTOR_PR_REVIEW_TOOLS } from "./github/components/selectors";
 
 const coverageData = new Map<string, FileCoverage>();
 
 export function tryInjectDiffUI(): void {
   try {
-    tryInjectDiffPullRequestUI();
     tryInjectDiffCommitUI();
 
     // Set up observer for future tab changes
@@ -19,7 +18,6 @@ export function tryInjectDiffUI(): void {
       });
 
       if (update) {
-        tryInjectDiffPullRequestUI();
         tryInjectDiffCommitUI();
       }
     });
@@ -47,39 +45,6 @@ async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   }
   coverageData.set(path, coverage);
   return coverage;
-}
-
-function tryInjectDiffPullRequestUI() {
-  document.querySelectorAll(".js-diff-progressive-container").forEach((el) => {
-    tryInjectDiffPullRequestUIElement(el as HTMLElement);
-  });
-
-  const prReviewToolsDiv = document.querySelector(
-    SELECTOR_PR_REVIEW_TOOLS,
-  ) as HTMLDivElement;
-  addNextUncoveredLineButton(prReviewToolsDiv);
-  setupJumpToUncoveredLineHotkey();
-}
-
-function tryInjectDiffPullRequestUIElement(
-  rootElement: HTMLElement | null,
-): void {
-  if (!rootElement) return;
-  if (rootElement.classList.contains("qlty-diff-ui")) return;
-
-  rootElement
-    .querySelectorAll('[data-details-container-group="file"]')
-    .forEach(async (container) => {
-      await injectIntoFileContainer(
-        container.querySelector(".file-info") ?? container,
-        container.getAttribute("data-tagsearch-path"),
-        container.querySelectorAll("td[data-line-number].js-blob-rnum"),
-      );
-    });
-
-  console.log("[qlty] injected diff PR UI");
-  addPRPageBadge();
-  rootElement.classList.add("qlty-diff-ui");
 }
 
 const uncoveredLineKeyListener = (event: KeyboardEvent) => {
@@ -114,19 +79,14 @@ function setupJumpToUncoveredLineHotkey() {
   document.addEventListener("keydown", uncoveredLineKeyListener);
 }
 
-function addPRPageBadge(): void {
-  const badge = createBadge("pr");
-  if (!badge) return;
-  document.querySelector(".gh-header-actions")?.prepend(badge);
-}
-
 function tryInjectDiffCommitUI(): void {
-  const rootElement = document.getElementById("diff-content-parent");
-  if (!rootElement) return;
+  const rootElement =
+    document.getElementById("diff-content-parent") || document.body;
   if (rootElement.classList.contains("qlty-diff-ui")) return;
 
   const links: Element[] = [];
   rootElement.querySelectorAll('a[href^="#diff-"').forEach((link) => {
+    if (!link.classList.contains("Link--primary")) return;
     if (link.classList.contains("qlty-diff-link")) return; // Skip if already injected
     link.classList.add("qlty-diff-link");
     links.push(link);
@@ -144,14 +104,43 @@ function tryInjectDiffCommitUI(): void {
       link.parentElement?.parentElement ?? link,
       path,
       rootElement.querySelectorAll(
-        `[data-diff-anchor="${fileId}"] tr.diff-line-row td:nth-last-child(2)`,
+        `[data-diff-anchor="${fileId}"] td:nth-last-child(2)`,
       ),
     );
   });
 
-  console.log("[qlty] injected diff commit UI");
-  addDiffPageBadge();
+  if (isPRPage()) {
+    addPRPageBadge();
+    addNextUncoveredLineButton();
+  } else {
+    addDiffPageBadge();
+  }
+
+  console.log("[qlty] injected diff UI");
   rootElement.classList.add("qlty-diff-ui");
+}
+
+function isPRPage(): boolean {
+  return !!(
+    document.querySelector(".pull-request-tab-content") ||
+    document.querySelector("react-app[app-name='pull-request-files']")
+  );
+}
+
+function addPRPageBadge(): void {
+  const badge = createBadge("pr");
+  if (!badge) return;
+
+  const header = document.querySelector(".gh-header-actions");
+  if (header) {
+    header.prepend(badge);
+  }
+
+  const actions = document.querySelector("[data-component=PH_Actions]");
+  if (actions) {
+    actions.insertBefore(badge, actions.querySelector("button")!);
+    badge.style.order = "inherit";
+  }
 }
 
 function addDiffPageBadge(): void {
@@ -203,7 +192,12 @@ function jumpToNextUncoveredLine() {
   linkableLine.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
 
-function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
+function addNextUncoveredLineButton(): void {
+  const prReviewToolsDiv = document.querySelector(SELECTOR_PR_REVIEW_TOOLS);
+  if (!prReviewToolsDiv) {
+    return;
+  }
+
   let existingButton = document.querySelector(".qlty-btn-next-uncovered-line");
   if (existingButton) {
     return;
@@ -235,6 +229,8 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
   } else {
     prReviewToolsDiv.appendChild(button);
   }
+
+  setupJumpToUncoveredLineHotkey();
 }
 
 async function injectIntoFileContainer(
