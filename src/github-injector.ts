@@ -6,7 +6,7 @@ const coverageData = new Map<string, FileCoverage>();
 
 export function tryInjectDiffUI(): void {
   try {
-    void tryInjectDiffPullRequestUI();
+    tryInjectDiffPullRequestUI();
     tryInjectDiffCommitUI();
 
     // Set up observer for future tab changes
@@ -19,7 +19,7 @@ export function tryInjectDiffUI(): void {
       });
 
       if (update) {
-        void tryInjectDiffPullRequestUI();
+        tryInjectDiffPullRequestUI();
         tryInjectDiffCommitUI();
       }
     });
@@ -49,14 +49,10 @@ async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   return coverage;
 }
 
-async function tryInjectDiffPullRequestUI() {
-  const diffContainers = Array.from(
-    document.querySelectorAll(".js-diff-progressive-container")
-  );
-
-  const promises = diffContainers.map((el) =>
-    tryInjectDiffPullRequestUIElement(el as HTMLElement));
-  await Promise.all(promises);
+function tryInjectDiffPullRequestUI() {
+  document.querySelectorAll(".js-diff-progressive-container").forEach((el) => {
+    tryInjectDiffPullRequestUIElement(el as HTMLElement);
+  });
 
   const prReviewToolsDiv = document.querySelector(SELECTOR_PR_REVIEW_TOOLS) as HTMLDivElement;
   addNextUncoveredLineButton(prReviewToolsDiv);
