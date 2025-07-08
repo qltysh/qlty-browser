@@ -31,12 +31,57 @@ export function tryInjectDiffUI(): void {
   }
 }
 
+function getRef() {
+  const commitSha = getPullRequestCommitSha();
+  if (commitSha) {
+    return commitSha;
+  }
+
+  const ref = getRefFromUrl();
+  if (ref) {
+    return ref;
+  }
+
+  return null;
+}
+
+function getPullRequestCommitSha() {
+  // Retrieve the SHA from the "changes from ..." picker
+  const finalCommitElement = document.querySelector("#files_bucket details-menu [data-commit]:last-child");
+
+  return finalCommitElement?.getAttribute('data-commit') ?? null;
+}
+
+function getRefFromUrl() {
+  const pathParts = window.location.pathname.split("/");
+
+  let commitShaIndex = pathParts.indexOf("pull");
+  let reference: string | null = null;
+  if (commitShaIndex >= 0) {
+    reference = `refs/pull/${pathParts[commitShaIndex + 1]}`;
+  } else {
+    commitShaIndex = pathParts.indexOf("commit");
+    if (commitShaIndex >= 0) {
+      reference = pathParts[commitShaIndex + 1];
+    }
+  }
+
+  return reference;
+}
+
 async function loadCoverageForPath(path: string): Promise<FileCoverage | null> {
   path = normalizePath(path);
   let cached = coverageData.get(path);
   if (cached) return cached;
 
-  const data = await readCoverageData(path);
+  const ref = getRef();
+  if (!ref) {
+    console.warn("[qlty] No reference found for coverage data");
+    return null;
+  }
+
+  const data = await readCoverageData(path, ref);
+
   const coverage = data?.files.find(
     (file) => normalizePath(file.path) === path,
   );
