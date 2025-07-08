@@ -54,7 +54,9 @@ function tryInjectDiffPullRequestUI() {
     tryInjectDiffPullRequestUIElement(el as HTMLElement);
   });
 
-  const prReviewToolsDiv = document.querySelector(SELECTOR_PR_REVIEW_TOOLS) as HTMLDivElement;
+  const prReviewToolsDiv = document.querySelector(
+    SELECTOR_PR_REVIEW_TOOLS,
+  ) as HTMLDivElement;
   addNextUncoveredLineButton(prReviewToolsDiv);
   setupJumpToUncoveredLineHotkey();
 }
@@ -81,7 +83,7 @@ function tryInjectDiffPullRequestUIElement(
 }
 
 const uncoveredLineKeyListener = (event: KeyboardEvent) => {
-  const ignoredTags = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+  const ignoredTags = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 
   const isTypingInEditable = (element: EventTarget | null) => {
     if (!(element instanceof HTMLElement)) {
@@ -89,13 +91,12 @@ const uncoveredLineKeyListener = (event: KeyboardEvent) => {
     }
 
     return (
-      element?.isContentEditable === true ||
-      ignoredTags.has(element?.tagName)
+      element?.isContentEditable === true || ignoredTags.has(element?.tagName)
     );
-  }
+  };
 
-  const {key, target, ctrlKey, metaKey, altKey, repeat} = event;
-  if (key !== 'n' || ctrlKey || metaKey || altKey || repeat) {
+  const { key, target, ctrlKey, metaKey, altKey, repeat } = event;
+  if (key !== "n" || ctrlKey || metaKey || altKey || repeat) {
     return;
   }
 
@@ -109,8 +110,8 @@ const uncoveredLineKeyListener = (event: KeyboardEvent) => {
 };
 
 function setupJumpToUncoveredLineHotkey() {
-  document.removeEventListener('keydown', uncoveredLineKeyListener);
-  document.addEventListener('keydown', uncoveredLineKeyListener);
+  document.removeEventListener("keydown", uncoveredLineKeyListener);
+  document.addEventListener("keydown", uncoveredLineKeyListener);
 }
 
 function addPRPageBadge(): void {
@@ -171,7 +172,7 @@ function createBadge(type: "pr" | "commit"): HTMLDivElement | null {
 }
 
 function getUncoveredLineDivs(): HTMLDivElement[] {
-  return Array.from(document.querySelectorAll('.qlty-coverage-miss'));
+  return Array.from(document.querySelectorAll(".qlty-coverage-miss"));
 }
 
 function jumpToNextUncoveredLine() {
@@ -180,16 +181,16 @@ function jumpToNextUncoveredLine() {
     return;
   }
 
-  const currentlySelectedIndex = uncoveredLineDivs.findIndex(
-    el => el.parentElement?.classList.contains('selected-line')
+  const currentlySelectedIndex = uncoveredLineDivs.findIndex((el) =>
+    el.parentElement?.classList.contains("selected-line"),
   );
 
   const nextIndex = (currentlySelectedIndex + 1) % uncoveredLineDivs.length;
   const nextElement = uncoveredLineDivs[nextIndex];
-  nextElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+  nextElement.scrollIntoView({ behavior: "smooth", block: "center" });
 
   const linkableLine = nextElement.parentElement!;
-  if (!linkableLine.classList.contains('js-linkable-line-number')) {
+  if (!linkableLine.classList.contains("js-linkable-line-number")) {
     console.warn("[qlty] Could not find linkable line number");
     return;
   }
@@ -197,13 +198,13 @@ function jumpToNextUncoveredLine() {
   // Click the line to highlight it
   // If we don't also trigger a click event, then our line gets unhighlighted on
   // subsequent button clicks
-  linkableLine.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
-  linkableLine.dispatchEvent(new MouseEvent('mouseup', {bubbles: true}));
-  linkableLine.dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  linkableLine.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+  linkableLine.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+  linkableLine.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 }
 
 function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
-  let existingButton = document.querySelector('.qlty-btn-next-uncovered-line');
+  let existingButton = document.querySelector(".qlty-btn-next-uncovered-line");
   if (existingButton) {
     return;
   }
@@ -213,12 +214,15 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
     return;
   }
 
-  const buttonIcon = document.createElement('span');
-  buttonIcon.classList.add('qlty-icon');
+  const buttonIcon = document.createElement("span");
+  buttonIcon.classList.add("qlty-icon");
 
   const button = createButton(
-    'Jump to next uncovered line',
-    ['qlty-btn-next-uncovered-line', 'qlty-ml-2'],
+    "Jump to next uncovered line",
+    [
+      "qlty-btn-next-uncovered-line",
+      prReviewToolsDiv.lastElementChild ? "qlty-mr-2" : "qlty-ml-2",
+    ],
     (e) => {
       e.preventDefault();
       jumpToNextUncoveredLine();
@@ -226,7 +230,11 @@ function addNextUncoveredLineButton(prReviewToolsDiv: HTMLDivElement): void {
     createButtonContent([buttonIcon]),
   );
 
-  prReviewToolsDiv.appendChild(button);
+  if (prReviewToolsDiv.lastElementChild) {
+    prReviewToolsDiv.insertBefore(button, prReviewToolsDiv.lastElementChild);
+  } else {
+    prReviewToolsDiv.appendChild(button);
+  }
 }
 
 async function injectIntoFileContainer(
@@ -293,7 +301,9 @@ function injectCoverageSummary(
   icon.classList.add("qlty-icon");
   el.appendChild(document.createTextNode("Coverage: "));
   const percent = el.appendChild(document.createElement("span"));
-  const covPercent = coverage.coveredLines / (coverage.coveredLines + coverage.missedLines) * 100;
+  const covPercent =
+    (coverage.coveredLines / (coverage.coveredLines + coverage.missedLines)) *
+    100;
   percent.innerText = `${covPercent.toFixed(2)}%`;
   const progress = el.appendChild(document.createElement("div"));
   progress.classList.add("qlty-coverage-progress");
