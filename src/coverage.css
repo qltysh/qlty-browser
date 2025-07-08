@@ -1,3 +1,15 @@
+:root {
+  --qlty-btn-bg: #f6f8fa;
+  --qlty-btn-border: #ced4da;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --qlty-btn-bg: #212830;
+    --qlty-btn-border: #3d444d;
+  }
+}
+
 .qlty-coverage-gutter {
   position: absolute;
   top: 0;
@@ -107,6 +119,34 @@
   top: 0;
   width: 16px;
   height: 16px;
+}
+
+.qlty-btn {
+  float: left;
+  vertical-align: middle;
+
+  background-color: var(--qlty-btn-bg);
+  border: 0.0625rem solid var(--qlty-btn-border);
+  border-radius: 0.375rem;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 0 0.5rem;
+  height: 1.75rem;
+
+  .qlty-icon {
+    background-color: #9198a1;
+    top: auto;
+  }
+}
+
+.qlty-ml-2 {
+  margin-left: 8px;
+}
+
+.qlty-mr-2 {
+  margin-right: 8px;
 }
 
 .qlty-coverage-progress {
