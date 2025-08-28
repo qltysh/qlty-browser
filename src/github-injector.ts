@@ -79,7 +79,7 @@ function setupJumpToUncoveredLineHotkey() {
   document.addEventListener("keydown", uncoveredLineKeyListener);
 }
 
-function tryInjectDiffCommitUI(): void {
+async function tryInjectDiffCommitUI(): Promise<void> {
   const rootElement =
     document.getElementById("diff-content-parent") || document.body;
   if (rootElement.classList.contains("qlty-diff-ui")) return;
@@ -92,22 +92,7 @@ function tryInjectDiffCommitUI(): void {
     links.push(link);
   });
 
-  if (links.length === 0) {
-    return; // No links to process
-  }
-
-  links.forEach(async (link) => {
-    const path = (link as HTMLElement).innerText.replace("\u200E", "");
-    const fileId = link.getAttribute("href")?.split("#")[1] ?? "";
-
-    await injectIntoFileContainer(
-      link.parentElement?.parentElement ?? link,
-      path,
-      rootElement.querySelectorAll(
-        `[data-diff-anchor="${fileId}"] td:nth-last-child(2)`,
-      ),
-    );
-  });
+  await processFileLinks(rootElement, links);
 
   if (isPRPage()) {
     addPRPageBadge();
@@ -118,6 +103,25 @@ function tryInjectDiffCommitUI(): void {
 
   console.log("[qlty] injected diff UI");
   rootElement.classList.add("qlty-diff-ui");
+}
+
+async function processFileLinks(rootElement: HTMLElement, links: Element[]) {
+  const promises: Promise<void>[] = [];
+
+  for (const link of links) {
+    const path = (link as HTMLElement).innerText.replace("\u200E", "");
+    const fileId = link.getAttribute("href")?.split("#")[1] ?? "";
+
+    promises.push(injectIntoFileContainer(
+      link.parentElement?.parentElement ?? link,
+      path,
+      rootElement.querySelectorAll(
+        `[data-diff-anchor="${fileId}"] td:nth-last-child(2)`,
+      ),
+    ));
+  }
+
+  return Promise.all(promises);
 }
 
 function isPRPage(): boolean {
@@ -174,6 +178,13 @@ function jumpToNextUncoveredLine() {
     el.parentElement?.classList.contains("selected-line"),
   );
 
+  const currentElement = uncoveredLineDivs[currentlySelectedIndex];
+  if (currentElement) {
+    // Click the current line to deselect it; this is necessary to make sure
+    // the selected line doesn't stay selected (occurs sometimes during back/forward nav)
+    selectLinkableLine(currentElement.parentElement!);
+  }
+
   const nextIndex = (currentlySelectedIndex + 1) % uncoveredLineDivs.length;
   const nextElement = uncoveredLineDivs[nextIndex];
   nextElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -184,6 +195,10 @@ function jumpToNextUncoveredLine() {
     return;
   }
 
+  selectLinkableLine(linkableLine);
+}
+
+function selectLinkableLine(linkableLine: HTMLElement) {
   // Click the line to highlight it
   // If we don't also trigger a click event, then our line gets unhighlighted on
   // subsequent button clicks
