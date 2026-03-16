@@ -38,6 +38,9 @@
     "webextension-polyfill": "^0.12.0"
   },
   "overrides": {
-    "pino": "9.13.0"
+    "pino": "9.13.0",
+    "@crxjs/vite-plugin": {
+      "rollup": "2.80.0"
+    }
   }
 }
