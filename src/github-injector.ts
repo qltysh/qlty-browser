@@ -82,31 +82,32 @@ function setupJumpToUncoveredLineHotkey() {
 function tryInjectDiffCommitUI(): void {
   const rootElement =
     document.getElementById("diff-content-parent") || document.body;
-  if (rootElement.classList.contains("qlty-diff-ui")) return;
 
   const links: Element[] = [];
   rootElement.querySelectorAll('a[href^="#diff-"').forEach((link) => {
     if (!link.classList.contains("Link--primary")) return;
-    if (link.classList.contains("qlty-diff-link")) return; // Skip if already injected
-    link.classList.add("qlty-diff-link");
+    if (link.classList.contains("qlty-diff-link")) return;
     links.push(link);
   });
 
   if (links.length === 0) {
-    return; // No links to process
+    return;
   }
 
   links.forEach(async (link) => {
-    const path = (link as HTMLElement).innerText.replace("\u200E", "");
+    const path = (link as HTMLElement).innerText.replaceAll("\u200E", "");
     const fileId = link.getAttribute("href")?.split("#")[1] ?? "";
 
-    await injectIntoFileContainer(
+    const injected = await injectIntoFileContainer(
       link.parentElement?.parentElement ?? link,
       path,
       rootElement.querySelectorAll(
         `[data-diff-anchor="${fileId}"] td:nth-last-child(2)`,
       ),
     );
+    if (injected) {
+      link.classList.add("qlty-diff-link");
+    }
   });
 
   if (isPRPage()) {
@@ -115,9 +116,6 @@ function tryInjectDiffCommitUI(): void {
   } else {
     addDiffPageBadge();
   }
-
-  console.log("[qlty] injected diff UI");
-  rootElement.classList.add("qlty-diff-ui");
 }
 
 function isPRPage(): boolean {
@@ -237,22 +235,24 @@ async function injectIntoFileContainer(
   container: Element,
   path: string | null,
   gutterCells: NodeListOf<Element>,
-) {
-  if (!path) return;
+): Promise<boolean> {
+  if (!path) return false;
 
   if (gutterCells.length === 0) {
-    return;
+    return false;
   }
 
   try {
     const coverage = await loadCoverageForPath(path);
     if (!coverage) {
-      return;
+      return false;
     }
     injectCoverageSummary(container, coverage);
     gutterCells.forEach((cell) => injectIntoGutterCell(cell, coverage));
+    return true;
   } catch (error: any) {
     console.warn(`[qlty] Could not load coverage: ${error.message}`);
+    return false;
   }
 }
 
