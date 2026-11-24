@@ -1,30 +1,16 @@
 import { readCoverageData } from "./api";
 import { createButton, createButtonContent } from "./github/components/button";
 import { SELECTOR_PR_REVIEW_TOOLS } from "./github/components/selectors";
+import { addPageLoadListener } from "./github/events";
 
 const coverageData = new Map<string, FileCoverage>();
 
 export function tryInjectDiffUI(): void {
   try {
-    tryInjectDiffCommitUI();
+    void tryInjectDiffCommitUI();
 
-    // Set up observer for future tab changes
-    const observer = new MutationObserver((mutations) => {
-      let update = false;
-      mutations.forEach((mutation) => {
-        if (mutation.type === "attributes" || mutation.addedNodes.length > 0) {
-          update = true;
-        }
-      });
-
-      if (update) {
-        tryInjectDiffCommitUI();
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
+    addPageLoadListener(() => {
+      void tryInjectDiffCommitUI();
     });
   } catch (error: any) {
     console.warn(`[qlty] Could not load coverage: ${error.message}`);
@@ -82,7 +68,6 @@ function setupJumpToUncoveredLineHotkey() {
 function tryInjectDiffCommitUI(): void {
   const rootElement =
     document.getElementById("diff-content-parent") || document.body;
-  if (rootElement.classList.contains("qlty-diff-ui")) return;
 
   const links: Element[] = [];
   rootElement.querySelectorAll('a[href^="#diff-"').forEach((link) => {
@@ -200,7 +185,8 @@ function addNextUncoveredLineButton(): void {
 
   let existingButton = document.querySelector(".qlty-btn-next-uncovered-line");
   if (existingButton) {
-    return;
+    // Replace the button with a new one
+    existingButton.remove();
   }
 
   if (getUncoveredLineDivs().length === 0) {
